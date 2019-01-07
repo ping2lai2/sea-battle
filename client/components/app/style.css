@@ -1,0 +1,19 @@
+body {
+background: #eee;
+}
+
+.app {
+
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+  font-family: Arial, sans-serif;
+}
+.tested {
+  width: 400px;
+  height: 300px;
+  &:hover {
+    background: #eee;
+  }
+}
