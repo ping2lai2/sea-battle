@@ -40,7 +40,7 @@ export const shipsParams = {
 
 export const shipsData = [4, 3, 2, 1]; // 4-cell: 1, 3-cell: 2...
 
-export const createCanvasData = ships => {
+export const createCanvasData = ships => { //immutable
   return ships.map(ship => {
     const length = ship.coordinates.length - 1;
     const coordinates = ship.coordinates;
@@ -61,8 +61,6 @@ export const createCanvasData = ships => {
 
 export const restoreToCellsType = ship => {
   const restoredShip = getCellCoordinate(ship);
-  //restoredShip.x = Math.round((ship.x - offsetLeft) / fullCellSize);
-  //restoredShip.y = Math.round((ship.y - offsetTop) / fullCellSize);
 
   restoredShip.coordinates = [];
 
@@ -100,7 +98,7 @@ export const generateShipsWithabroadPosition = (ships = [4, 3, 2, 1]) => {
 
   return canvasAdroadSips;
 };
-//TODO: сомнительное решение, в итоге нам приходится клонировать объект, с.м. placement-ships, в добавок, я же её эспорчу
+
 export const abroadShips = generateShipsWithabroadPosition(); 
 
 export const isShipOnGrid = ship =>
@@ -142,7 +140,7 @@ export const restoreCellCoordinate = cell => ({
 
 
 /**********************/
-/****canvas draving****/
+/****canvas drawing****/
 /**********************/
 
 export const drawGrid = ctx => {

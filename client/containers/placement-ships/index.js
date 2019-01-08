@@ -6,10 +6,12 @@ import {
   addToBusyCells,
   removeFromBusyCells,
   changeShipPosition,
+  removeShipFromList,
 } from '../../actions/ships';
 import {
   generateRandomShipsCoordinates,
   createBusyCells,
+  hardClone,
 } from '../../api/mainLogic';
 import {
   abroadShips,
@@ -33,8 +35,8 @@ class PlacementShips extends React.Component {
     this.canvas = React.createRef();
     this.ctx = null;
     this.canvasShipsData = [];
-    this.canvasShipIndex = null;
-    this.currentCanvasShip = {};
+    this.shipIndex = null;
+    this.canvasShip = {}; //canvasShipsData reference
     this.clonedCanvasShip = {};
   }
   componentDidMount() {
@@ -53,13 +55,12 @@ class PlacementShips extends React.Component {
   randomGenerate = () => {
     const { ships, busyCellsMatrix } = generateRandomShipsCoordinates();
     this.props.recalculateShipsData(ships, busyCellsMatrix);
-    this.canvasShipsData = createCanvasData(ships);
+    this.canvasShipsData = hardClone(createCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData);
   };
   clearGrid = () => {
     this.props.clearShipsData();
-    // TODO: не порядок вообще
-    this.canvasShipsData = JSON.parse(JSON.stringify(abroadShips));
+    this.canvasShipsData = hardClone(abroadShips);
     this.drawCanvas(this.ctx, this.canvasShipsData);
   };
 
@@ -69,7 +70,7 @@ class PlacementShips extends React.Component {
     //current mouse position
     const mx = parseInt(e.nativeEvent.offsetX);
     const my = parseInt(e.nativeEvent.offsetY);
-    this.canvasShipIndex = this.canvasShipsData.findIndex(
+    this.shipIndex = this.canvasShipsData.findIndex(
       ship =>
         mx > ship.x &&
         mx < ship.x + ship.width &&
@@ -77,47 +78,55 @@ class PlacementShips extends React.Component {
         my < ship.y + ship.height
     );
 
-    if (this.canvasShipIndex >= 0) {
-      this.currentCanvasShip = this.canvasShipsData[this.canvasShipIndex];
+    if (this.shipIndex >= 0) {
+      this.canvasShip = this.canvasShipsData[this.shipIndex];
 
-      if (isShipOnGrid(this.currentCanvasShip)) {
-        this.props.removeFromBusyCells(this.canvasShipIndex);
+      if (isShipOnGrid(this.canvasShip)) {
+        this.props.removeFromBusyCells(this.shipIndex);
       }
-      //FIXIT: shallow или по барабану на мутации данных в канвасе?
-      this.clonedCanvasShip = { ...this.canvasShipsData[this.canvasShipIndex] };
 
-      this.currentCanvasShip.ox = mx;
-      this.currentCanvasShip.oy = my;
+      this.clonedCanvasShip = { ...this.canvasShipsData[this.shipIndex] };
+
+      this.canvasShip.ox = mx;
+      this.canvasShip.oy = my;
     } else {
-      this.canvasShipIndex = null;
+      this.shipIndex = null;
     }
   };
 
   _mouseMove = e => {
-    if (this.canvasShipIndex !== null) {
+    if (this.shipIndex !== null) {
       const mx = parseInt(e.nativeEvent.offsetX);
       const my = parseInt(e.nativeEvent.offsetY);
-      this.currentCanvasShip.x += mx - this.currentCanvasShip.ox;
-      this.currentCanvasShip.y += my - this.currentCanvasShip.oy;
+
+      this.canvasShip.x += mx - this.canvasShip.ox;
+      this.canvasShip.y += my - this.canvasShip.oy;
+      this.canvasShip.ox = mx;
+      this.canvasShip.oy = my;
+      
+      this.canvasShipsData[this.shipIndex] = this.canvasShip;
       this.drawCanvas(this.ctx, this.canvasShipsData);
-      this.currentCanvasShip.ox = mx;
-      this.currentCanvasShip.oy = my;
       drawAccessFrame(
         this.ctx,
-        this.currentCanvasShip,
+        this.canvasShip,
         this.props.busyCellsMatrix
       );
     }
   };
 
   _mouseUp = () => {
-    if (this.canvasShipIndex !== null) {
-      if (isShipOnGrid(this.currentCanvasShip)) {
+    if (this.shipIndex !== null) {
+      // мы на сетке?
+      if (isShipOnGrid(this.canvasShip)) {
+        //получаем новые данные корабля, который мы пытаемся воткнуть
+        // если на месте нового корабля уже есть корабль, то возвращает false
         const newShip = canPutShipInCell(
-          this.currentCanvasShip,
+          this.canvasShip,
           this.props.busyCellsMatrix
         );
+        // мы на позиции другого корабля?
         if (newShip) {
+          // дополняем остальными данными
           newShip.busyCellsX = createBusyCells(
             newShip.x,
             newShip.x + newShip.width - 1
@@ -126,71 +135,86 @@ class PlacementShips extends React.Component {
             newShip.y,
             newShip.y + newShip.height - 1
           );
+          // обновляем данные списка кораблей
+          this.props.changeShipPosition(this.shipIndex, newShip);
 
-          this.props.changeShipPosition(this.canvasShipIndex, newShip);
+          //правим данные у канваса
           const coords = restoreCellCoordinate(
-            getCellCoordinate(this.currentCanvasShip)
+            getCellCoordinate(this.canvasShip)
           );
-          this.currentCanvasShip.x = coords.x;
-          this.currentCanvasShip.y = coords.y;
-
+          this.canvasShip.x = coords.x;
+          this.canvasShip.y = coords.y;
         } else {
-          if (this.props.ships[this.canvasShipIndex]) {
-            this.canvasShipsData[this.canvasShipIndex] = {
+          // наш корабль попал на другой корабь
+          // мы изначально были на сетке?
+          if (this.props.ships[this.shipIndex]) {
+            // возвращаем в положение, занимаемое им ранее
+            this.canvasShipsData[this.shipIndex] = {
               ...this.clonedCanvasShip,
             };
-          } else {
-            this.canvasShipsData[this.canvasShipIndex] = {
-              ...abroadShips[this.canvasShipIndex],
+          } 
+          else {
+            // мы изначально не были на сетке
+            // возвращаем за пределы сетки, он ещё не в списке и не в матрице
+            this.canvasShipsData[this.shipIndex] = {
+              ...abroadShips[this.shipIndex],
             };
             this.drawCanvas(this.ctx, this.canvasShipsData);
-            this.canvasShipIndex = null;
+            this.shipIndex = null;
             return false;
           }
         }
-        this.props.addToBusyCells(this.canvasShipIndex);
+        // наш корабль на сетке, так что надо обновить данные в матрице
+        this.props.addToBusyCells(this.shipIndex);
       } else {
-        this.canvasShipsData[this.canvasShipIndex] = {
-          ...abroadShips[this.canvasShipIndex],
+        //не на сетке
+        // перемещаем изображение за пределы сетки
+        this.canvasShipsData[this.shipIndex] = {
+          ...abroadShips[this.shipIndex],
         };
+        // зачищаем данные в списке кораблей
+        this.props.changeShipPosition(this.shipIndex, undefined);
       }
 
       this.drawCanvas(this.ctx, this.canvasShipsData);
-      this.canvasShipIndex = null;
+      this.shipIndex = null;
     }
   };
   _mouseLeave = () => {
-    // TODO: !!!
-    if (this.canvasShipIndex !== null) {
-      this.canvasShipsData[this.canvasShipIndex] = {
-        ...abroadShips[this.canvasShipIndex],
+    if (this.shipIndex !== null) {
+      this.canvasShipsData[this.shipIndex] = {
+        ...abroadShips[this.shipIndex],
       };
+      this.props.changeShipPosition(this.shipIndex, undefined);
       this.drawCanvas(this.ctx, this.canvasShipsData);
-      this.canvasShipIndex = null;
+      this.shipIndex = null;
     }
   };
   _keyDown = e => {
     e.nativeEvent.preventDefault();
     e.nativeEvent.stopPropagation();
-    if (this.canvasShipIndex !== null && e.keyCode === 32) {
-      // TODO: мб сделать const {} = this.currentCanvasShip или const ship = this.currentCanvasShip? а то
-      //смотрится жутко
-      const width = this.currentCanvasShip.width;
-      this.currentCanvasShip.width = this.currentCanvasShip.height;
-      this.currentCanvasShip.height = width;
-
-      //разница между позицией мыши и позицией самого корабля(верхнего левого)
-      const dx = this.currentCanvasShip.ox - this.currentCanvasShip.x;
-      const dy = this.currentCanvasShip.oy - this.currentCanvasShip.y;
-
-      this.currentCanvasShip.x = this.currentCanvasShip.ox - dy;
-      this.currentCanvasShip.y = this.currentCanvasShip.oy - dx;
+    if (this.shipIndex !== null && e.keyCode === 32) {
+      const { width, height, ox, oy, x, y } = this.canvasShip;
+      this.canvasShip = {
+        ...this.canvasShip,
+        width: height,
+        height: width,
+        x: ox - oy + y,
+        y: oy - ox + x,
+      };
+      /*TODO: итак... избавляться от мутаций или нет?
+      плюсы: предсказуемое поведение, "чистый" код
+      минусы: сожрет больше вычислительных ресурсов, вероятно, код будет длиннее, 
+      т.к. везде придется писать что-то типа того, что ниже
+      п.с. я не вижу особого смысла)
+      */
+      this.canvasShipsData[this.shipIndex] = this.canvasShip;
 
       this.drawCanvas(this.ctx, this.canvasShipsData);
 
       drawAccessFrame(
         this.ctx,
-        this.currentCanvasShip,
+        this.canvasShip,
         this.props.busyCellsMatrix
       );
     }
@@ -228,7 +252,10 @@ class PlacementShips extends React.Component {
   }
 }
 // TODO: проптайпс где?
-const mapStateToProps = ({ shipsPlacement}) => (shipsPlacement);
+const mapStateToProps = ({ shipsPlacement }) => ({
+  ships: shipsPlacement.ships,
+  busyCellsMatrix: shipsPlacement.busyCellsMatrix,
+});
 
 const mapDispatchToProps = dispatch => ({
   removeFromBusyCells: index => dispatch(removeFromBusyCells(index)),
@@ -236,6 +263,8 @@ const mapDispatchToProps = dispatch => ({
 
   changeShipPosition: (index, ship) =>
     dispatch(changeShipPosition(index, ship)),
+
+  removeShipFromList: index => dispatch(removeShipFromList(index)),
 
   clearShipsData: () => dispatch(clearShipsData()),
   recalculateShipsData: (ships, busyCellsMatrix) =>

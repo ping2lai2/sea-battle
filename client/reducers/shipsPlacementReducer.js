@@ -4,16 +4,14 @@ import {
   ADD_TO_BUSY_CELLS,
   REMOVE_FROM_BUSY_CELLS,
   CHANGE_SHIP_POSITION,
+  READY_CHECK,
 } from '../actions/ships';
 
 const initialState = {
-  ships: Array(10), //TODO:
+  ships: Array(10),
   busyCellsMatrix: Array.from(Array(10), () => Array(10).fill(0)),
 };
 
-//TODO: херовая тема проводить какие-то манипуляции, хранить логику в редьюсерах
-//TODO: будет время - заюзать immer
-// здесь просто нужно сводить в общую картину, переделай всё к чертям
 export const shipsPlacementReducer = (state = initialState, action) => {
   switch (action.type) {
   case CHANGE_SHIP_POSITION: {
@@ -29,73 +27,22 @@ export const shipsPlacementReducer = (state = initialState, action) => {
   }
 
   case ADD_TO_BUSY_CELLS: {
-    //TODO: дублируешь
-    const currentShip = state.ships[action.index];
-    const busyX = currentShip.busyCellsX;
-    const busyY = currentShip.busyCellsY;
-    const coordsMin = currentShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
-    const coordsMax = currentShip.coordinates[currentShip.length - 1]; //право-низ (x, y, isDestroyed)
-    const busyCellsMatrix = state.busyCellsMatrix.map((row, i) =>
-      row.map((cell, j) => {
-        if (
-          i >= busyX[0] &&
-            i <= busyX[1] &&
-            j >= busyY[0] &&
-            j <= busyY[1]
-        ) {
-          if (
-            i >= coordsMin[0] &&
-              i <= coordsMax[0] &&
-              j >= coordsMin[1] &&
-              j <= coordsMax[1]
-          ) {
-            cell = 5;
-          } else if (cell < 4) {
-            cell++;
-          }
-        }
-        return cell;
-      })
-    );
     return {
       ...state,
-      busyCellsMatrix,
+      busyCellsMatrix: changeBusyCells(
+        state.ships[action.index],
+        state.busyCellsMatrix,
+        true
+      ),
     };
   }
-
   case REMOVE_FROM_BUSY_CELLS: {
-    const currentShip = state.ships[action.index];
-    const busyX = currentShip.busyCellsX;
-    const busyY = currentShip.busyCellsY;
-
-    const coordsMin = currentShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
-    const coordsMax = currentShip.coordinates[currentShip.length - 1]; //право-низ (x, y, isDestroyed)
-
-    const busyCellsMatrix = state.busyCellsMatrix.map((row, i) =>
-      row.map((cell, j) => {
-        if (
-          i >= busyX[0] &&
-            i <= busyX[1] &&
-            j >= busyY[0] &&
-            j <= busyY[1]
-        ) {
-          if (
-            i >= coordsMin[0] &&
-              i <= coordsMax[0] &&
-              j >= coordsMin[1] &&
-              j <= coordsMax[1]
-          ) {
-            cell = 0;
-          } else if (cell > 0) {
-            cell--;
-          }
-        }
-        return cell;
-      })
-    );
     return {
       ...state,
-      busyCellsMatrix,
+      busyCellsMatrix: changeBusyCells(
+        state.ships[action.index],
+        state.busyCellsMatrix
+      ),
     };
   }
   case RECALCULATE_SHIPS_DATA: {
@@ -112,4 +59,31 @@ export const shipsPlacementReducer = (state = initialState, action) => {
   default:
     return state;
   }
+};
+
+const changeBusyCells = (currentShip, busyCellsMatrix, isAdding = false) => {
+  const busyX = currentShip.busyCellsX;
+  const busyY = currentShip.busyCellsY;
+  const coordsMin = currentShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
+  const coordsMax = currentShip.coordinates[currentShip.length - 1]; //право-низ (x, y, isDestroyed)
+
+  return busyCellsMatrix.map((row, i) =>
+    row.map((cell, j) => {
+      if (i >= busyX[0] && i <= busyX[1] && j >= busyY[0] && j <= busyY[1]) {
+        if (
+          i >= coordsMin[0] &&
+          i <= coordsMax[0] &&
+          j >= coordsMin[1] &&
+          j <= coordsMax[1]
+        ) {
+          cell = isAdding ? 5 : 0;
+        } else if (!isAdding && cell > 0) {
+          cell--;
+        } else if (isAdding && cell < 4) {
+          cell++;
+        }
+      }
+      return cell;
+    })
+  );
 };

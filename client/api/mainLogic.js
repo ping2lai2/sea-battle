@@ -1,6 +1,7 @@
 export const getRandomInt = (min, max) =>
   Math.floor(Math.random() * (max - min + 1) + min);
 
+export const hardClone = obj => JSON.parse(JSON.stringify(obj));
 
 export const generateRandomShipsCoordinates = (ships = [4, 3, 2, 1]) => {
   let busyCellsMatrix = Array.from(Array(10), () => Array(10).fill(0));
@@ -35,24 +36,21 @@ export const getRandomCoordinates = (length, busyCellsMatrix) => {
 
   const coordinates = [];
 
-
   for (let i = 0; i < length; i++) {
-    if (
-      busyCellsMatrix[x + i * isHorizontal][y + i * !isHorizontal] > 0
-    ) {
+    if (busyCellsMatrix[x + i * isHorizontal][y + i * !isHorizontal] > 0) {
       return getRandomCoordinates(length, busyCellsMatrix);
     }
   }
 
-  const busyCellsX = createBusyCells(x, x + width-1);
-  const busyCellsY = createBusyCells(y, y + height-1);
+  const busyCellsX = createBusyCells(x, x + width - 1);
+  const busyCellsY = createBusyCells(y, y + height - 1);
 
   for (let i = busyCellsX[0]; i <= busyCellsX[1]; i++) {
     for (let j = busyCellsY[0]; j <= busyCellsY[1]; j++) {
       busyCellsMatrix[i][j] = busyCellsMatrix[i][j] + 1;
     }
   }
-  
+
   for (let i = 0; i < length; i++) {
     const xc = x + i * isHorizontal;
     const yc = y + i * !isHorizontal;

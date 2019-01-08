@@ -3,6 +3,8 @@ export const CLEAR_SHIPS_DATA = 'CLEAR_SHIPS_DATA';
 export const ADD_TO_BUSY_CELLS = 'ADD_TO_BUSY_CELLS';
 export const REMOVE_FROM_BUSY_CELLS = 'REMOVE_FROM_BUSY_CELLS';
 export const RECALCULATE_SHIPS_DATA = 'RECALCULATE_SHIPS_DATA';
+export const REMOVE_SHIP_FROM_LIST ='REMOVE_SHIP_FROM_LIST';
+
 export const IS_READY = 'IS_READY';
 export const NOT_READY = 'NOT_READY';
 export const READY_CHECK = 'READY_CHECK';
@@ -41,3 +43,8 @@ export const readyCheck = (ships) => ({
   type: READY_CHECK,
   ships
 });
+
+export const removeShipFromList = index => ({
+  type: REMOVE_SHIP_FROM_LIST,
+  index
+})
