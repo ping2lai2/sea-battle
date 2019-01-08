@@ -10,10 +10,3 @@ background: #eee;
   height: 100%;
   font-family: Arial, sans-serif;
 }
-.tested {
-  width: 400px;
-  height: 300px;
-  &:hover {
-    background: #eee;
-  }
-}

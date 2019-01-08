@@ -21,8 +21,10 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
     filename: '[name].js',
+    publicPath: '/'
   },
   devServer: {
+    historyApiFallback: true,
     contentBase: './dist',
     port: 3000,
     open: true,
@@ -46,7 +48,7 @@ module.exports = {
         ],
       },
       {
-        test: /\.(png|jp(e*)g|svg)$/,
+        test: /\.(png|jp(e*)g|svg)$/, //TODO: dont forget delete
         use: [
           {
             loader: 'url-loader',
