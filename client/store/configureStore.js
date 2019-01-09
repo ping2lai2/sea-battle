@@ -3,7 +3,6 @@ import { routerMiddleware } from 'connected-react-router';
 import { rootReducer } from '../reducers';
 import { createBrowserHistory } from 'history';
 
-// https://github.com/notrab/create-react-app-redux/blob/e3ce6666ab51277ae5a3674ff8844b728284b9c9/src/store.js
 
 export const history = createBrowserHistory();
 
