@@ -40,20 +40,21 @@ export const shipsParams = {
 
 export const shipsData = [4, 3, 2, 1]; // 4-cell: 1, 3-cell: 2...
 
-export const createCanvasData = ships => { //immutable
+export const createCanvasData = ships => {
+  //immutable
   return ships.map(ship => {
     const length = ship.coordinates.length - 1;
     const coordinates = ship.coordinates;
-    const x0 = coordinates[0][0],
-      y0 = coordinates[0][1];
+    const x0 = coordinates[0].x,
+      y0 = coordinates[0].y;
     const canvasX0 = x0 * fullCellSize + offsetLeft,
       canvasY0 = y0 * fullCellSize + offsetTop;
 
     return {
       x: canvasX0,
       y: canvasY0,
-      width: (coordinates[length][0] - x0 + 1) * fullCellSize,
-      height: (coordinates[length][1] - y0 + 1) * fullCellSize,
+      width: (coordinates[length].x - x0 + 1) * fullCellSize,
+      height: (coordinates[length].y - y0 + 1) * fullCellSize,
       isDestroyed: ship.isDestroyed,
     };
   });
@@ -74,7 +75,7 @@ export const restoreToCellsType = ship => {
   for (let i = 0; i < restoredShip.length; i++) {
     const xc = restoredShip.x + i * isHorizontal;
     const yc = restoredShip.y + i * !isHorizontal;
-    restoredShip.coordinates.push([xc, yc, false]);
+    restoredShip.coordinates.push({ x: xc, y: yc, isDestroyed: false });
   }
 
   return restoredShip;
@@ -99,7 +100,7 @@ export const generateShipsWithabroadPosition = (ships = [4, 3, 2, 1]) => {
   return canvasAdroadSips;
 };
 
-export const abroadShips = generateShipsWithabroadPosition(); 
+export const abroadShips = generateShipsWithabroadPosition();
 
 export const isShipOnGrid = ship =>
   gridSize + offsetLeft + cellSize / 2 > ship.x + ship.width &&
@@ -137,7 +138,6 @@ export const restoreCellCoordinate = cell => ({
   x: cell.x * fullCellSize + offsetLeft,
   y: cell.y * fullCellSize + offsetTop,
 });
-
 
 /**********************/
 /****canvas drawing****/
@@ -249,9 +249,7 @@ export const drawFrame = (ctx, ship, isCanPut) => {
 };
 export const drawAccessFrame = (ctx, currentCanvasShip, busyCellsMatrix) => {
   if (isShipOnGrid(currentCanvasShip)) {
-    if (
-      canPutShipInCell(currentCanvasShip, busyCellsMatrix)
-    ) {
+    if (canPutShipInCell(currentCanvasShip, busyCellsMatrix)) {
       drawFrame(ctx, currentCanvasShip, true);
     } else {
       drawFrame(ctx, currentCanvasShip, false);

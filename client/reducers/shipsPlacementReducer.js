@@ -4,7 +4,6 @@ import {
   ADD_TO_BUSY_CELLS,
   REMOVE_FROM_BUSY_CELLS,
   CHANGE_SHIP_POSITION,
-  READY_CHECK,
 } from '../actions/ships';
 
 const initialState = {
@@ -71,10 +70,10 @@ const changeBusyCells = (currentShip, busyCellsMatrix, isAdding = false) => {
     row.map((cell, j) => {
       if (i >= busyX[0] && i <= busyX[1] && j >= busyY[0] && j <= busyY[1]) {
         if (
-          i >= coordsMin[0] &&
-          i <= coordsMax[0] &&
-          j >= coordsMin[1] &&
-          j <= coordsMax[1]
+          i >= coordsMin.x &&
+          i <= coordsMax.x &&
+          j >= coordsMin.y &&
+          j <= coordsMax.y
         ) {
           cell = isAdding ? 5 : 0;
         } else if (!isAdding && cell > 0) {

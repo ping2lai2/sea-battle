@@ -54,7 +54,7 @@ export const getRandomCoordinates = (length, busyCellsMatrix) => {
   for (let i = 0; i < length; i++) {
     const xc = x + i * isHorizontal;
     const yc = y + i * !isHorizontal;
-    coordinates.push([xc, yc, false]);
+    coordinates.push({ x: xc, y: yc, isDestroyed: false });
     busyCellsMatrix[xc][yc] = 5;
   }
 

@@ -1,13 +1,6 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import {
-  recalculateShipsData,
-  clearShipsData,
-  addToBusyCells,
-  removeFromBusyCells,
-  changeShipPosition,
-  removeShipFromList,
-} from '../../actions/ships';
+import PropTypes from 'prop-types';
+
 import {
   generateRandomShipsCoordinates,
   createBusyCells,
@@ -25,11 +18,9 @@ import {
   getCellCoordinate,
 } from '../../api/canvasLogic';
 
-import PropTypes from 'prop-types';
-
 import './style.css';
 
-class PlacementShips extends React.Component {
+class PlacementGrid extends React.Component {
   constructor(props) {
     super(props);
     this.canvas = React.createRef();
@@ -46,9 +37,7 @@ class PlacementShips extends React.Component {
     //TODO: можно тестить пропсы на наличие данных о местоположении кораблей, если есть, то не генерировать заново
     //TODO: не понял, почему с every() не работает то же самое
     //TODO: this.props.ships. деструктурируй
-    if (
-      this.props.ships.includes(undefined)
-    ) {
+    if (this.props.ships.includes(undefined)) {
       this.canvasShipsData = hardClone(abroadShips);
     } else {
       this.canvasShipsData = hardClone(createCanvasData(this.props.ships));
@@ -179,7 +168,6 @@ class PlacementShips extends React.Component {
         // зачищаем данные в списке кораблей
         this.props.changeShipPosition(this.shipIndex, undefined);
       }
-
       this.drawCanvas(this.ctx, this.canvasShipsData);
       this.shipIndex = null;
     }
@@ -251,29 +239,34 @@ class PlacementShips extends React.Component {
     );
   }
 }
-// TODO: проптайпс где?
-const mapStateToProps = ({ shipsPlacement }) => ({
-  ships: shipsPlacement.ships,
-  busyCellsMatrix: shipsPlacement.busyCellsMatrix,
-});
 
-const mapDispatchToProps = dispatch => ({
-  removeFromBusyCells: index => dispatch(removeFromBusyCells(index)),
-  addToBusyCells: index => dispatch(addToBusyCells(index)),
+PlacementGrid.propTypes = {
+  ships: PropTypes.arrayOf(
+    PropTypes.shape({
+      length: PropTypes.number,
+      width: PropTypes.number,
+      height: PropTypes.number,
+      x: PropTypes.number,
+      y: PropTypes.number,
+      coordinates: PropTypes.arrayOf(
+        PropTypes.shape({
+          x: PropTypes.number,
+          y: PropTypes.number,
+          isDestroyed: PropTypes.bool,
+        })
+      ),
+      busyCellsX: PropTypes.arrayOf(PropTypes.number),
+      busyCellsY: PropTypes.arrayOf(PropTypes.number),
+      isDestroyed: PropTypes.bool,
+    })
+  ).isRequired,
+  busyCellsMatrix: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.number))
+    .isRequired,
+  recalculateShipsData: PropTypes.func.isRequired,
+  clearShipsData: PropTypes.func.isRequired,
+  addToBusyCells: PropTypes.func.isRequired,
+  removeFromBusyCells: PropTypes.func.isRequired,
+  changeShipPosition: PropTypes.func.isRequired,
+};
 
-  changeShipPosition: (index, ship) =>
-    dispatch(changeShipPosition(index, ship)),
-
-  removeShipFromList: index => dispatch(removeShipFromList(index)),
-
-  clearShipsData: () => dispatch(clearShipsData()),
-  recalculateShipsData: (ships, busyCellsMatrix) =>
-    dispatch(recalculateShipsData(ships, busyCellsMatrix)),
-});
-
-PlacementShips.propTypes = {};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(PlacementShips);
+export default PlacementGrid;
