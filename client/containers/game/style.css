@@ -4,10 +4,3 @@
   justify-content: space-around;
   align-items: center;
 }
-.user-grid, .opponent-grid {
-  border-radius: 4px;
-  background: #fff;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
-
-  
-}

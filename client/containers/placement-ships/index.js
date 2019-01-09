@@ -44,7 +44,16 @@ class PlacementShips extends React.Component {
     this.canvas.current.height = 400;
     this.ctx = this.canvas.current.getContext('2d');
     //TODO: можно тестить пропсы на наличие данных о местоположении кораблей, если есть, то не генерировать заново
-    this.randomGenerate();
+    //TODO: не понял, почему с every() не работает то же самое
+    //TODO: this.props.ships. деструктурируй
+    if (
+      this.props.ships.includes(undefined)
+    ) {
+      this.canvasShipsData = hardClone(abroadShips);
+    } else {
+      this.canvasShipsData = hardClone(createCanvasData(this.props.ships));
+    }
+    this.drawCanvas(this.ctx, this.canvasShipsData);
   }
 
   drawCanvas = (ctx, ships) => {
@@ -103,14 +112,10 @@ class PlacementShips extends React.Component {
       this.canvasShip.y += my - this.canvasShip.oy;
       this.canvasShip.ox = mx;
       this.canvasShip.oy = my;
-      
+
       this.canvasShipsData[this.shipIndex] = this.canvasShip;
       this.drawCanvas(this.ctx, this.canvasShipsData);
-      drawAccessFrame(
-        this.ctx,
-        this.canvasShip,
-        this.props.busyCellsMatrix
-      );
+      drawAccessFrame(this.ctx, this.canvasShip, this.props.busyCellsMatrix);
     }
   };
 
@@ -152,8 +157,7 @@ class PlacementShips extends React.Component {
             this.canvasShipsData[this.shipIndex] = {
               ...this.clonedCanvasShip,
             };
-          } 
-          else {
+          } else {
             // мы изначально не были на сетке
             // возвращаем за пределы сетки, он ещё не в списке и не в матрице
             this.canvasShipsData[this.shipIndex] = {
@@ -212,11 +216,7 @@ class PlacementShips extends React.Component {
 
       this.drawCanvas(this.ctx, this.canvasShipsData);
 
-      drawAccessFrame(
-        this.ctx,
-        this.canvasShip,
-        this.props.busyCellsMatrix
-      );
+      drawAccessFrame(this.ctx, this.canvasShip, this.props.busyCellsMatrix);
     }
   };
   render() {

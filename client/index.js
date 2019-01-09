@@ -5,7 +5,6 @@ import { ConnectedRouter } from 'connected-react-router';
 import { Route, Switch } from 'react-router';
 import { history, store } from './store/configureStore';
 import App from './components/app';
-import Lobby from './components/lobby';
 
 import './static/styles/reset.css';
 
