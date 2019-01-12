@@ -4,12 +4,24 @@ export const ADD_TO_BUSY_CELLS = 'ADD_TO_BUSY_CELLS';
 export const REMOVE_FROM_BUSY_CELLS = 'REMOVE_FROM_BUSY_CELLS';
 export const RECALCULATE_SHIPS_DATA = 'RECALCULATE_SHIPS_DATA';
 
+/********************************************************/
 
-export const IS_READY = 'IS_READY';
-export const NOT_READY = 'NOT_READY';
-export const READY_CHECK = 'READY_CHECK';
+export const CAN_USER_SHOOT = 'CAN_USER_SHOOT';
 
-//отказался от payload т.к. местами данные не являются плоскими
+export const CREATE_USER_DATA = 'CREATE_USER_DATA';
+export const CREATE_OPPONENT_DATA = 'CREATE_OPPONENT_DATA';
+
+export const PUT_CELL_TO_OPPONENT_DATA = 'PUT_CELL_TO_OPPONENT_DATA';
+export const PUT_SHIP_TO_OPPONENT_DATA = 'PUT_SHIP_TO_OPPONENT_DATA';
+export const PUT_CELL_TO_USER_DATA = 'PUT_CELL_TO_USER_DATA';
+export const PUT_SHIP_TO_USER_DATA = 'PUT_SHIP_TO_USER_DATA';
+export const PUT_SHIPS_CELL_TO_USER_DATA = 'PUT_SHIPS_CELL_TO_USER_DATA';
+
+//TODO: TIMER ЕЩЕ
+//TODO: ВЕРНИ ПЭЙЛОАД
+
+/*_________________ LOBBY ACTIONS______________________ */
+
 export const changeShipPosition = (index, ship) => ({
   type: CHANGE_SHIP_POSITION,
   index,
@@ -36,10 +48,52 @@ export const recalculateShipsData = (ships, busyCellsMatrix) => ({
   busyCellsMatrix,
 });
 
+/*_________________ GAME ACTIONS_______________________ */
 
-//TODO: вообще нужен ли тут редьюсер
+export const createUserData = (ships, busyCellsMatrix) => ({
+  type: CREATE_USER_DATA,
+  ships,
+  busyCellsMatrix,
+});
 
-export const readyCheck = (ships) => ({
-  type: READY_CHECK,
-  ships
+export const createOpponentData = () => ({
+  type: CREATE_OPPONENT_DATA,
+});
+
+export const createGameData = (ships, busyCellsMatrix) => dispatch => {
+  dispatch(createUserData(ships, busyCellsMatrix)),
+  dispatch(createOpponentData());
+};
+
+export const canUserShoot = bool => ({
+  type: CAN_USER_SHOOT,
+  bool,
+});
+
+export const putCellToUserData = cell => ({
+  type: PUT_CELL_TO_USER_DATA,
+  cell,
+});
+
+export const putCellToOpponentData = (cell, hit) => ({
+  type: PUT_CELL_TO_OPPONENT_DATA,
+  cell,
+  hit,
+});
+
+export const putShipToUserData = ship => ({
+  type: PUT_SHIP_TO_USER_DATA,
+  ship,
+});
+
+export const putShipToOpponentData = (index, ship) => ({
+  type: PUT_SHIP_TO_OPPONENT_DATA,
+  index,
+  ship,
+});
+
+export const putShipsCellToUserData = (index, cell) => ({
+  type: PUT_SHIPS_CELL_TO_USER_DATA,
+  index,
+  cell,
 });

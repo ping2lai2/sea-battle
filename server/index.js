@@ -1,26 +1,14 @@
-const app = require('http').createServer();
-const io = require('socket.io')(app);
+var app = require('http').createServer();
+var io = (module.exports.io = require('socket.io')(app));
 
 const PORT = process.env.PORT || 3333;
 
-const SocketManager = require('./SocketManager');
+//const SocketManager = require('./SocketManager');
 
-io.on('connection', SocketManager);
+//io.on('connection', SocketManager);
 
-app.listen(PORT, error => {
-  if (error) {
-    console.log(error);
-  }
+app.listen(PORT, () => {
   console.log('Connected to port:' + PORT);
 });
-/*
 
-app.listen(port);
-
-io.on('connection', function(socket) {
-  console.log('connected');
-  socket.on('CHANGE_CLIENT', function(data) {
-    socket.broadcast.emit('CHANGE_SERVER', data);
-  });
-});
-*/
+require('./SocketManager')(io);

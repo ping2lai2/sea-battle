@@ -8,10 +8,18 @@ import {
   addToBusyCells,
   removeFromBusyCells,
   changeShipPosition,
+  createUserData,
+  createOpponentData,
+  createGameData,
 } from '../../actions/ships';
 
+import {
+  REQUEST_GAME_ROOM,
+  RECEIVE_GAME_ROOM,
+} from '../../../common/socketEvents';
+
 import PlacementGrid from '../../components/placement-grid';
-import NewGameForm from '../../components/new-game-creator';
+import NewGameCreator from '../../components/new-game-creator';
 
 import './style.css';
 
@@ -19,6 +27,23 @@ class Lobby extends React.Component {
   constructor(props) {
     super(props);
   }
+  componentDidMount() {
+    const { socket, history } = this.props;
+    socket.on(RECEIVE_GAME_ROOM, gameRoom => {
+      history.push(`/game/${gameRoom}`);
+    });
+  }
+
+  _onClick = () => {
+    const { shipsPlacement, createGameData, socket } = this.props;
+    if (!shipsPlacement.ships.includes(undefined)) {
+      socket.emit(REQUEST_GAME_ROOM);
+      createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
+      console.log(this.props.userData);
+      //createUserData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
+      //createOpponentData();
+    }
+  };
   render() {
     const {
       shipsPlacement,
@@ -28,6 +53,7 @@ class Lobby extends React.Component {
       removeFromBusyCells,
       changeShipPosition,
     } = this.props;
+
     return (
       <div className="lobby">
         <PlacementGrid
@@ -39,7 +65,7 @@ class Lobby extends React.Component {
           removeFromBusyCells={removeFromBusyCells}
           changeShipPosition={changeShipPosition}
         />
-        <NewGameForm />
+        <NewGameCreator canRunGame={this._onClick} />
       </div>
     );
   }
@@ -47,8 +73,9 @@ class Lobby extends React.Component {
 
 // TODO: проптайпс где?
 
-const mapStateToProps = ({ shipsPlacement }) => ({
+const mapStateToProps = ({ shipsPlacement, userData }) => ({
   shipsPlacement,
+  userData,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -63,6 +90,14 @@ const mapDispatchToProps = dispatch => ({
 
   recalculateShipsData: (ships, busyCellsMatrix) =>
     dispatch(recalculateShipsData(ships, busyCellsMatrix)),
+
+  createUserData: (ships, busyCellsMatrix) =>
+    dispatch(createUserData(ships, busyCellsMatrix)),
+
+  createGameData: (ships, busyCellsMatrix) =>
+    dispatch(createGameData(ships, busyCellsMatrix)),
+
+  createOpponentData: () => dispatch(createOpponentData()),
 });
 
 Lobby.propTypes = {

@@ -1,13 +1,29 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import { readyCheck } from '../../actions/ships';
+import { push } from 'connected-react-router';
+import {
+  REQUEST_GAME_ROOM,
+  RECEIVE_GAME_ROOM,
+} from '../../../common/socketEvents';
 
 import PropTypes from 'prop-types';
 
 import './style.css';
 
 class NewGameCreator extends React.Component {
+
+  joinGame(gameId) {
+    const { dispatch } = this.props;
+    dispatch(setCreatingRoom(false));
+    browserHistory.push(`/${gameId}`);
+  }
+  handleNewGame = () => {
+    //setCreatingRoom(true) ACTIONS
+    //const { socket, dispatch } = this.props;
+    //dispatch(setCreatingRoom(true));
+    socket.emit(REQUEST_GAME_ROOM);
+  };
   render() {
+    const { canRunGame } = this.props;
     return (
       <div className="new-game-creator">
         <input className="user-name" type="text" placeholder="твоё имя..." />
@@ -16,22 +32,14 @@ class NewGameCreator extends React.Component {
           <div className="opponent-type">знакомый</div>
           <div className="opponent-type">бот</div>
         </div>
-        <button>играть</button>
+        <input className="user-name room" type="text" placeholder="комната" />
+        <button onClick={canRunGame}>играть</button>
       </div>
     );
   }
 }
 
-const mapStateToProps = ({ shipsPlacement }) => shipsPlacement;
-
-const mapDispatchToProps = dispatch => ({
-  readyCheck: (ships) => dispatch(readyCheck(ships)),
-});
-
 // TODO: проптайпс где?
 NewGameCreator.propTypes = {};
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(NewGameCreator);
+export default NewGameCreator;

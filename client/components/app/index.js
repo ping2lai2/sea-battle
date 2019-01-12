@@ -1,27 +1,33 @@
 import React from 'react';
-import { Route, Switch } from 'react-router';
-import { ConnectedRouter } from 'connected-react-router';
-import { Link } from 'react-router-dom';
+import { Route, Router, Switch } from 'react-router';
+
 import Lobby from '../../containers/lobby';
 import Game from '../../containers/game';
 
+import socket from '../../socket';
+
 import './style.css';
 
-//import socket from '../../socket.js';
-const App = ({ history }) => {
-  return (
-    <ConnectedRouter history={history}>
-      <>
-        <>
-          <Link to="/">Home</Link> <Link to="/game">Hello</Link>
-        </>
-        <Switch>
-          <Route exact path="/" component={Lobby} />
-          <Route path="/game" component={Game} />
-        </Switch>
-      </>
-    </ConnectedRouter>
-  );
-};
+
+// TODO: поглядеть, что пробрасываешь
+class App extends React.Component {
+  render() {
+    return (
+      <Switch>
+        <Route
+          exact
+          path="/"
+          component={() => <Lobby socket={socket} {...this.props} />}
+        />
+        <Route
+          path="/game/:roomID"
+          component={match => (
+            <Game socket={socket} {...match} {...this.props} />
+          )}
+        />
+      </Switch>
+    );
+  }
+}
 
 export default App;

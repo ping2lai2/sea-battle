@@ -3,7 +3,7 @@ const lineGridSize = 1,
   gridColor = '#666',
   cellsNumber = 10,
   cellSize = 32, //px
-  offsetLeft = 30, //px
+  offsetLeft = 50, //px
   offsetTop = 30, //px
   fullCellSize = cellSize + lineGridSize,
   gridSize = cellsNumber * (cellSize + lineGridSize) + lineGridSize;
@@ -43,6 +43,9 @@ export const shipsData = [4, 3, 2, 1]; // 4-cell: 1, 3-cell: 2...
 export const createCanvasData = ships => {
   //immutable
   return ships.map(ship => {
+    if (ship === undefined) {
+      return undefined;
+    }
     const length = ship.coordinates.length - 1;
     const coordinates = ship.coordinates;
     const x0 = coordinates[0].x,
@@ -61,7 +64,7 @@ export const createCanvasData = ships => {
 };
 
 export const restoreToCellsType = ship => {
-  const restoredShip = getCellCoordinate(ship);
+  const restoredShip = getRoundedCellCoordinate(ship);
 
   restoredShip.coordinates = [];
 
@@ -129,7 +132,7 @@ export const canPutShipInCell = (ship, busyCellsMatrix) => {
   //}
 };
 
-export const getCellCoordinate = coord => ({
+export const getRoundedCellCoordinate = coord => ({
   x: Math.round((coord.x - offsetLeft) / fullCellSize),
   y: Math.round((coord.y - offsetTop) / fullCellSize),
 });
@@ -138,6 +141,20 @@ export const restoreCellCoordinate = cell => ({
   x: cell.x * fullCellSize + offsetLeft,
   y: cell.y * fullCellSize + offsetTop,
 });
+
+export const getCurrentCellOnGrid = coord => {
+  if (
+    coord.x > offsetLeft &&
+    coord.x < gridSize + offsetLeft - lineGridSize &&
+    coord.y > offsetTop &&
+    coord.y < gridSize + offsetTop - lineGridSize
+  ) {
+    return {
+      x: Math.floor((coord.x - offsetLeft) / fullCellSize),
+      y: Math.floor((coord.y - offsetTop) / fullCellSize),
+    };
+  } else return false;
+};
 
 /**********************/
 /****canvas drawing****/
@@ -167,17 +184,19 @@ export const drawGrid = ctx => {
 
 export const drawShips = (ctx, ships) => {
   for (let ship of ships) {
-    ctx.beginPath();
-    ctx.rect(ship.x, ship.y, ship.width, ship.height);
-    ctx.fillStyle = ship.isDestroyed ? destroyedMainColor : mainColor;
-    ctx.fill();
-    ctx.strokeStyle = ship.isDestroyed
-      ? destroyedMainStrokeColor
-      : mainStrokeColor;
-    ctx.lineWidth = strokeWidth;
-    ctx.strokeRect(ship.x, ship.y, ship.width, ship.height);
+    if (ship) {
+      ctx.beginPath();
+      ctx.rect(ship.x, ship.y, ship.width, ship.height);
+      ctx.fillStyle = ship.isDestroyed ? destroyedMainColor : mainColor;
+      ctx.fill();
+      ctx.strokeStyle = ship.isDestroyed
+        ? destroyedMainStrokeColor
+        : mainStrokeColor;
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeRect(ship.x, ship.y, ship.width, ship.height);
 
-    ctx.closePath();
+      ctx.closePath();
+    }
   }
 };
 
@@ -258,19 +277,13 @@ export const drawAccessFrame = (ctx, currentCanvasShip, busyCellsMatrix) => {
 };
 
 export const drawShootAccessFrame = (ctx, x, y) => {
-  if (
-    x > offsetLeft &&
-    x < gridSize + offsetLeft &&
-    y > offsetTop &&
-    y < gridSize + offsetTop
-  ) {
-    const canvasX = Math.round(x / fullCellSize - 0.5) * fullCellSize;
-    const canvasY = Math.round(y / fullCellSize - 0.5) * fullCellSize;
+  const cell = getCurrentCellOnGrid({ x, y });
+  if (cell) {
     ctx.strokeStyle = forbidColor;
     ctx.lineWidth = frameWidth;
     ctx.strokeRect(
-      canvasX - frameWidth,
-      canvasY - frameWidth,
+      cell.x * fullCellSize + offsetLeft,
+      cell.y * fullCellSize + offsetTop,
       fullCellSize,
       fullCellSize
     );

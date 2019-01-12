@@ -1,13 +1,14 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import { routerMiddleware } from 'connected-react-router';
 import { rootReducer } from '../reducers';
-import { createBrowserHistory } from 'history';
+import { createHashHistory } from 'history';
+import thunk from 'redux-thunk';
 
 
-export const history = createBrowserHistory();
+export const history = createHashHistory();
 
 const initialState = {};
-const middleware = [routerMiddleware(history)];
+const middleware = [thunk, routerMiddleware(history)];
 const enhancers = [];
 
 if (process.env.NODE_ENV === 'development') {

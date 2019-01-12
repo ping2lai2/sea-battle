@@ -15,7 +15,7 @@ import {
   canPutShipInCell,
   drawAccessFrame,
   restoreCellCoordinate,
-  getCellCoordinate,
+  getRoundedCellCoordinate,
 } from '../../api/canvasLogic';
 
 import './style.css';
@@ -134,7 +134,7 @@ class PlacementGrid extends React.Component {
 
           //правим данные у канваса
           const coords = restoreCellCoordinate(
-            getCellCoordinate(this.canvasShip)
+            getRoundedCellCoordinate(this.canvasShip)
           );
           this.canvasShip.x = coords.x;
           this.canvasShip.y = coords.y;

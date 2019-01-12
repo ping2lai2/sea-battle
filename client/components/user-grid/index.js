@@ -5,9 +5,14 @@ import {
   drawShips,
   createCanvasData,
   createDataForShip,
+  drawMatrixState,
   getCanvasCellCoordinate,
   drawShootAccessFrame,
 } from '../../api/canvasLogic';
+
+import { hardClone } from '../../api/mainLogic';
+
+//TODO: нужно в хок скрутить, они идентичны практически по функционалу
 
 import './style.css';
 
@@ -19,27 +24,29 @@ class UserGrid extends React.Component {
     this.canvasWidth = 520;
     this.canvasHeight = 400;
     this.ctx = null;
-    
+    this.canvasShipsData = [];
   }
   componentDidMount() {
-    this.canvas.current.width = this.canvasWidth; //TODO: надо как-то иначе, имхо
+    const {ships, busyCellsMatrix} = this.props;
+    this.canvas.current.width = this.canvasWidth;
     this.canvas.current.height = this.canvasHeight;
     this.ctx = this.canvas.current.getContext('2d');
-
-    this.drawCanvas(this.ctx);
-    //this.props.ships
-    //this.drawCanvas(this.ctx, this.canvasShipsData);
-    //this.props.opponentShips
-    //this.drawCanvas(this.ctx, this.canvasShipsData);
+    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.drawCanvas(this.ctx, this.canvasShipsData,busyCellsMatrix);
   }
-
-  drawCanvas = ctx => {
-    ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+  componentDidUpdate() {
+    const {ships, busyCellsMatrix} = this.props;
+    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
+  }
+  drawCanvas = (ctx, ships, busyCellsMatrix) => {
+    ctx.clearRect(0, 0, this.canvas.current.width, this.canvas.current.height);
     drawGrid(ctx);
+    drawShips(ctx, ships);
+    drawMatrixState(ctx, busyCellsMatrix);
   };
-
+  //TODO: прокидываю width={this.width} а ещё есть this.canvas.current.widt this.canvasWidth, что хотел - хз
   render() {
-    //const {} = this.props;
     return (
       <div className="grid">
         <canvas ref={this.canvas} width={this.width} height={this.height} />
