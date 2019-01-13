@@ -18,7 +18,6 @@ import PropTypes from 'prop-types';
 
 import './style.css';
 
-//import socket from '../../socket.js';
 
 import {
   OPPONENT_LEFT,
@@ -44,16 +43,15 @@ class Game extends React.Component {
   componentDidMount() {
     //TODO: при загрузке приходит ответ с сервера с флагом роли, сетки свернуть в ХОК, прокидывать с оппонента не просто клетку или корабль
     //TODO: а всю актуальную матрицу и лист уничтоженных кораблей
-
+    
     const { socket } = this.props;
-    const { roomID } = this.props.match.params;
-
+    
+    // const { roomID } = this.props.match.params;
     //this.props.socket.emit(JOIN_GAME, roomID);//TODO:
-    // socket.on(DISABLE_GAME, this.handleDisableGame); //TODO:
     //	socket.on(ALL_PLAYERS_CONNECTED, this.runGame);
-
+    
     // socket.on(OPPONENT_LEFT, this.handleOpponentDeparture);
-
+    // socket.on(DISABLE_GAME, this.handleDisableGame); //TODO:
     socket.on(CAN_USER_SHOOT, this.handleCanUserShoot);
     socket.on(RECEIVE_SHOOT, this.handleReceiveShoot); //получили выстрел с сервера
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback); //получили выстрел
@@ -185,6 +183,22 @@ const mapDispatchToProps = dispatch => ({
   putShipToOpponentData: (index, ship) =>
     dispatch(putShipToOpponentData(index, ship)),
 });
+
+
+Game.propTypes = {
+  userData: PropTypes.shape({
+    ships: PropTypes.array.isRequired,
+    busyCellsMatrix: PropTypes.array.isRequired,
+  }).isRequired,
+  opponentData: PropTypes.shape({
+    ships: PropTypes.array.isRequired,
+    busyCellsMatrix: PropTypes.array.isRequired,
+  }).isRequired,
+  userShoot: PropTypes.bool,
+  socket: PropTypes.object.isRequired,
+};
+
+
 
 export default connect(
   mapStateToProps,

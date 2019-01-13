@@ -8,8 +8,6 @@ import {
   addToBusyCells,
   removeFromBusyCells,
   changeShipPosition,
-  createUserData,
-  createOpponentData,
   createGameData,
 } from '../../actions/ships';
 
@@ -39,9 +37,6 @@ class Lobby extends React.Component {
     if (!shipsPlacement.ships.includes(undefined)) {
       socket.emit(REQUEST_GAME_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
-      console.log(this.props.userData);
-      //createUserData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
-      //createOpponentData();
     }
   };
   render() {
@@ -73,9 +68,9 @@ class Lobby extends React.Component {
 
 // TODO: проптайпс где?
 
-const mapStateToProps = ({ shipsPlacement, userData }) => ({
+const mapStateToProps = ({ shipsPlacement}) => ({
   shipsPlacement,
-  userData,
+
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -91,13 +86,9 @@ const mapDispatchToProps = dispatch => ({
   recalculateShipsData: (ships, busyCellsMatrix) =>
     dispatch(recalculateShipsData(ships, busyCellsMatrix)),
 
-  createUserData: (ships, busyCellsMatrix) =>
-    dispatch(createUserData(ships, busyCellsMatrix)),
-
   createGameData: (ships, busyCellsMatrix) =>
     dispatch(createGameData(ships, busyCellsMatrix)),
 
-  createOpponentData: () => dispatch(createOpponentData()),
 });
 
 Lobby.propTypes = {
@@ -110,6 +101,9 @@ Lobby.propTypes = {
   addToBusyCells: PropTypes.func.isRequired,
   removeFromBusyCells: PropTypes.func.isRequired,
   changeShipPosition: PropTypes.func.isRequired,
+  createGameData: PropTypes.func.isRequired,
+  history: PropTypes.object.isRequired,
+  socket: PropTypes.object.isRequired,
 };
 
 export default connect(
@@ -117,4 +111,3 @@ export default connect(
   mapDispatchToProps
 )(Lobby);
 
-//export default Lobby;

@@ -11,17 +11,6 @@ import './style.css';
 
 class NewGameCreator extends React.Component {
 
-  joinGame(gameId) {
-    const { dispatch } = this.props;
-    dispatch(setCreatingRoom(false));
-    browserHistory.push(`/${gameId}`);
-  }
-  handleNewGame = () => {
-    //setCreatingRoom(true) ACTIONS
-    //const { socket, dispatch } = this.props;
-    //dispatch(setCreatingRoom(true));
-    socket.emit(REQUEST_GAME_ROOM);
-  };
   render() {
     const { canRunGame } = this.props;
     return (
@@ -30,7 +19,6 @@ class NewGameCreator extends React.Component {
         <div className="type-checkers">
           <div className="opponent-type">случайный</div>
           <div className="opponent-type">знакомый</div>
-          <div className="opponent-type">бот</div>
         </div>
         <input className="user-name room" type="text" placeholder="комната" />
         <button onClick={canRunGame}>играть</button>
@@ -40,6 +28,8 @@ class NewGameCreator extends React.Component {
 }
 
 // TODO: проптайпс где?
-NewGameCreator.propTypes = {};
+NewGameCreator.propTypes = {
+  canRunGame: PropTypes.func.isRequired,
+};
 
 export default NewGameCreator;
