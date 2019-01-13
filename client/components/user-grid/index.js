@@ -43,7 +43,7 @@ class UserGrid extends React.Component {
     ctx.clearRect(0, 0, this.canvas.current.width, this.canvas.current.height);
     drawGrid(ctx);
     drawShips(ctx, ships);
-    drawMatrixState(ctx, busyCellsMatrix);
+    drawMatrixState(ctx, busyCellsMatrix, true);
   };
   //TODO: прокидываю width={this.width} а ещё есть this.canvas.current.widt this.canvasWidth, что хотел - хз
   render() {

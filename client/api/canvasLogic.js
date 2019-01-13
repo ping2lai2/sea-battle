@@ -3,7 +3,7 @@ const lineGridSize = 1,
   gridColor = '#666',
   cellsNumber = 10,
   cellSize = 32, //px
-  offsetLeft = 50, //px
+  offsetLeft = 30, //px
   offsetTop = 30, //px
   fullCellSize = cellSize + lineGridSize,
   gridSize = cellsNumber * (cellSize + lineGridSize) + lineGridSize;
@@ -200,7 +200,7 @@ export const drawShips = (ctx, ships) => {
   }
 };
 
-export const drawMatrixState = (ctx, matrix) => {
+export const drawMatrixState = (ctx, matrix, isOpponent = false) => {
   matrix.forEach((row, i) =>
     row.forEach((cell, j) => {
       switch (cell) {
@@ -208,7 +208,7 @@ export const drawMatrixState = (ctx, matrix) => {
       case 2:
       case 3:
       case 4:
-        drawBusyCell(ctx, { x: i, y: j });
+        if (!isOpponent) drawBusyCell(ctx, { x: i, y: j });
         return false;
       case 6:
         drawMissCell(ctx, { x: i, y: j });

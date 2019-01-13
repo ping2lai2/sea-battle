@@ -18,7 +18,6 @@ import PropTypes from 'prop-types';
 
 import './style.css';
 
-
 import {
   OPPONENT_LEFT,
   ALL_PLAYERS_CONNECTED,
@@ -43,13 +42,13 @@ class Game extends React.Component {
   componentDidMount() {
     //TODO: при загрузке приходит ответ с сервера с флагом роли, сетки свернуть в ХОК, прокидывать с оппонента не просто клетку или корабль
     //TODO: а всю актуальную матрицу и лист уничтоженных кораблей
-    
+
     const { socket } = this.props;
-    
+
     // const { roomID } = this.props.match.params;
     //this.props.socket.emit(JOIN_GAME, roomID);//TODO:
-    //	socket.on(ALL_PLAYERS_CONNECTED, this.runGame);
-    
+    socket.on(ALL_PLAYERS_CONNECTED, () => console.log('yes'));
+    socket.emit(JOIN_GAME, this.props.match.params.roomID);
     // socket.on(OPPONENT_LEFT, this.handleOpponentDeparture);
     // socket.on(DISABLE_GAME, this.handleDisableGame); //TODO:
     socket.on(CAN_USER_SHOOT, this.handleCanUserShoot);
@@ -100,14 +99,15 @@ class Game extends React.Component {
         });
         if (!userData.ships.some(ship => ship.isDestroyed === false)) {
           console.log('im loose');
-          socket.emit(OPPONENT_HAS_WON, {roomID: match.params.roomID});
+          socket.emit(OPPONENT_HAS_WON, { roomID: match.params.roomID });
         }
+      } else {
+        socket.emit(SEND_SHOOT_FEEDBACK, {
+          cell,
+          hit,
+          roomID: match.params.roomID,
+        });
       }
-      socket.emit(SEND_SHOOT_FEEDBACK, {
-        cell,
-        hit,
-        roomID: match.params.roomID,
-      });
       canUserShoot(false);
     } else {
       socket.emit(SEND_SHOOT_FEEDBACK, {
@@ -133,6 +133,7 @@ class Game extends React.Component {
 
   handleReceiveDestroyedShip = data => {
     console.log(data);
+    this.props.canUserShoot(true);
     this.props.putShipToOpponentData(data.index, data.ship);
   };
 
@@ -150,11 +151,11 @@ class Game extends React.Component {
 
   render() {
     console.log(this.props);
-    const { userData, opponentData } = this.props;
+    const { userData, opponentData, canShoot } = this.props;
 
     return (
       <>
-        <Time />
+        <Time canShoot={canShoot} />
         <div className="field">
           <UserGrid {...userData} />
           <OpponentGrid {...opponentData} sendShoot={this.handleSendShoot} />
@@ -184,7 +185,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(putShipToOpponentData(index, ship)),
 });
 
-
 Game.propTypes = {
   userData: PropTypes.shape({
     ships: PropTypes.array.isRequired,
@@ -197,8 +197,6 @@ Game.propTypes = {
   userShoot: PropTypes.bool,
   socket: PropTypes.object.isRequired,
 };
-
-
 
 export default connect(
   mapStateToProps,

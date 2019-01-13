@@ -14,6 +14,8 @@ import {
 import {
   REQUEST_GAME_ROOM,
   RECEIVE_GAME_ROOM,
+  FIND_ROOM,
+  
 } from '../../../common/socketEvents';
 
 import PlacementGrid from '../../components/placement-grid';
@@ -35,7 +37,7 @@ class Lobby extends React.Component {
   _onClick = () => {
     const { shipsPlacement, createGameData, socket } = this.props;
     if (!shipsPlacement.ships.includes(undefined)) {
-      socket.emit(REQUEST_GAME_ROOM);
+      socket.emit(FIND_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
     }
   };

@@ -36,6 +36,8 @@ export const opponentDataReducer = (state = initialState, action) => {
     const currentShip = action.ship;
     const busyX = currentShip.busyCellsX;
     const busyY = currentShip.busyCellsY;
+    const coordsMin = currentShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
+    const coordsMax = currentShip.coordinates[currentShip.length - 1]; //право-низ (x, y, isDestroyed)
     return {
       ...state,
       ships: [
@@ -52,6 +54,14 @@ export const opponentDataReducer = (state = initialState, action) => {
               j <= busyY[1]
           ) {
             cell = cell === 0 ? 1 : cell;
+          }
+          if (
+            i >= coordsMin.x &&
+              i <= coordsMax.x &&
+              j >= coordsMin.y &&
+              j <= coordsMax.y
+          ) {
+            cell = 7;
           }
           return cell;
         })

@@ -17,14 +17,80 @@ const {
   SEND_MESSAGE,
   RECEIVE_MESSAGE,
   ALL_PLAYERS_CONNECTED,
+  FIND_ROOM,
+  CREATE_ROOM,
 } = require('../common/socketEvents');
 
 const uuidv4 = require('uuid/v4');
 
-// TODO: проверить, работает ли, если с разных заходить
+const randomOpponentRooms = [];
+const customOpponentRooms = [];
+
 module.exports = function(io) {
   io.on('connection', function(socket) {
-    socket.on(REQUEST_GAME_ROOM, handleRequestGameRoom); //делаем комнату, конектимся к игре,
+    socket.on(FIND_ROOM, handleFindRoom);
+
+    function handleFindRoom() {
+      let roomID = randomOpponentRooms.shift();
+      console.log(roomID);
+      if (roomID) {
+        // randomOpponentRooms[0];
+        //const roomID = randomOpponentRooms.shift();
+        socket.emit(RECEIVE_GAME_ROOM, roomID);
+      } else {
+        roomID = createRoom();
+        randomOpponentRooms.push(roomID);
+      }
+      socket.on('disconnect', function() {
+        //  если в комнате один игрок и он вышел, то комната не удаляется из списка!
+        // заходит второй игрок, комната удаляется из списка, проверяем наличие игроков, если меньше нужного, объявляем победу
+        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
+      });
+    }
+    // TODO: нужно запрашивать имя
+    function handleJoinGame(roomID) {
+      socket.join(roomID);
+      const clients = io.sockets.adapter.rooms[roomID];
+      console.log(roomID);
+      console.log(clients.length);
+      if (clients.length === 2) {
+        console.log('there');
+        io.in(roomID).emit(ALL_PLAYERS_CONNECTED); // получившие эту запись являются игроками
+        // определить кто первый ходит
+        const gameRoom = io.sockets.adapter.rooms[roomID];
+        const first = Object.keys(gameRoom.sockets)[1 - defineFirst()];
+        console.log(first);
+        io.sockets.connected[first].emit(CAN_USER_SHOOT);
+      }
+    }
+    function createRoom() {
+      const roomID = uuidv4();
+      // socket.join(roomID);
+      socket.emit(RECEIVE_GAME_ROOM, roomID);
+      return roomID;
+    }
+
+    //на это пока забью
+    /*
+    
+    socket.on(CREATE_CUSTOM_ROOM, handleCreateCustomRoom);
+    socket.on(JOIN_CUSTOM_ROOM, handleJoinCustomRoom);
+
+    function handleCreateCustomRoom() {
+      const roomID = uuidv4();
+      socket.emit(RECEIVE_CUSTOM_ROOM, roomID); //отправили айдишник в форму и на кнопку
+    }
+
+    //TODO: придумать какой-нибудь параметр на клиенте, чтобы не пулять их на сервер при заходе
+    function handleJoinCustomRoom(roomID) { //зашли с кнопки при создании
+      socket.join(roomID);
+      socket.emit(RECEIVE_GAME_ROOM, roomID);
+      customOpponentRooms.push(roomID);
+    }
+*/
+
+    console.log('connected');
+    //socket.on(REQUEST_GAME_ROOM, handleRequestGameRoom); //делаем комнату, конектимся к игре,
     socket.on(JOIN_GAME, handleJoinGame); // присоединились к игре
     //socket.on(USER_READY, handleUserReady); //check
 
@@ -33,10 +99,10 @@ module.exports = function(io) {
     socket.on(SEND_DESTROYED_SHIP, handleSendDestroyedShip);
     socket.on(OPPONENT_HAS_WON, handleOpponentWinning);
 
-
     function handleOpponentWinning(payload) {
       console.log(payload);
       console.log('yeeeeeee');
+      //TODO придется ещё socket.id везде ложить
       socket.broadcast.to(payload.roomID).emit(USER_HAS_WON);
     }
 
@@ -60,87 +126,20 @@ module.exports = function(io) {
       console.log(payload);
       socket.broadcast.to(payload.roomID).emit(RECEIVE_SHOOT, payload.cell);
     }
-    function handleRequestGameRoom() {
-      //ищем пустую комнату, если не находим, то делаем новую
 
-      /*//its works
+    //ищем пустую комнату, если не находим, то делаем новую
+
+    /*//its works
       console.log(socket.id);
       console.log(io.sockets.connected);
       */
-      const rooms = io.sockets.adapter.rooms;
-      for (let roomID in rooms) {
-        const gameRoom = rooms[roomID];
-        if (gameRoom.isEmpty !== undefined && gameRoom.isEmpty) {
-          //если нашли пустую комнату, заходим туда с криком, что заняли
-          //так как это второй игрок, то начинаем игру
 
-          //socket.broadcast.to(gameRoom).emit(OPPONENT_READY);
-          gameRoom.isEmpty = false;
-          socket.emit(RECEIVE_GAME_ROOM, roomID);
-          socket.join(roomID);
-          io.in(roomID).emit(ALL_PLAYERS_CONNECTED);
-          console.log(gameRoom.sockets);
-          const first = Object.keys(gameRoom.sockets)[1 - defineFirst()];
-          io.sockets.connected[first].emit(CAN_USER_SHOOT);
-
-          return false;
-        }
-      }
-      console.log('create neew');
-      createNewRoom();
-    }
-    function createNewRoom() {
-      let roomID = uuidv4();
-      while (true) {
-        if (Object.keys(io.sockets.adapter.rooms).indexOf(roomID) > -1) {
-          roomID = uuidv4();
-        } else {
-          socket.emit(RECEIVE_GAME_ROOM, roomID);
-          socket.join(roomID);
-          io.sockets.adapter.rooms[roomID].isEmpty = true;
-          break;
-        }
-      }
-    }
     function defineFirst() {
       return Math.floor(Math.random() * 2);
     }
 
     function handleUserReady(roomID) {
       socket.broadcast.to(roomID).emit(OPPONENT_READY);
-    }
-    // TODO: странные проверки
-    function handleJoinGame(roomID) {
-      console.log('two', roomID);
-
-      //socket.broadcast.to(roomID).emit('lol');
-      const clients = io.sockets.adapter.rooms[roomID];
-      if (clients !== undefined && clients.length === 2) {
-      }
-
-      if (clients === undefined || clients.length < 2) {
-      } else {
-        // это надо отрезать и нужно два типа игр, пока по шаблону
-        console.log('leave');
-        socket.emit(DISABLE_GAME);
-        socket.leave(roomID);
-      }
-      if (clients === undefined) {
-        io.sockets.adapter.rooms[roomID].isEmpty = true;
-        //ТУТ НИЧЕГО ДЕЛАТЬ НЕ НАДО
-        // если клиентов нет, то... входящий - ходит первым TODO: (переделать)
-        socket.emit(CAN_USER_SHOOT);
-      }
-      if (clients !== undefined && clients.length === 1) {
-        io.sockets.adapter.rooms[roomID].isEmpty = false;
-        console.log('yes2');
-        io.in(roomID).emit(ALL_PLAYERS_CONNECTED);
-        console.log(io.sockets.adapter.rooms[roomID]);
-        //ВСЕ ИГРОКИ ПОДСОЕДИНИЛИСЬ НУЖНА РУЛЕТКА НА ПРАВО ПЕРВОГО ХОДА
-      }
-      socket.on('disconnect', function() {
-        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
-      });
     }
   });
 };
