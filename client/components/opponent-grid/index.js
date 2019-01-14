@@ -40,7 +40,7 @@ class OpponentGrid extends React.Component {
     const { ships, busyCellsMatrix } = this.props;
     this.canvasShipsData = hardClone(createCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
-    console.log(this.canvasShipsdata);
+    //console.log(this.canvasShipsdata);
   }
   
   drawCanvas = (ctx, ships, busyCellsMatrix) => {

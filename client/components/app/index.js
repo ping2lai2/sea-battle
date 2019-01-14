@@ -5,10 +5,9 @@ import io from 'socket.io-client';
 
 import Lobby from '../../containers/lobby';
 import Game from '../../containers/game';
-
+import GameInfo from '../../containers/game-info';
 
 import './style.css';
-
 
 const socket = io('http://localhost:3333');
 
@@ -16,19 +15,22 @@ const socket = io('http://localhost:3333');
 class App extends React.Component {
   render() {
     return (
-      <Switch>
-        <Route
-          exact
-          path="/"
-          component={() => <Lobby socket={socket} {...this.props} />}
-        />
-        <Route
-          path="/game/:roomID"
-          component={match => (
-            <Game socket={socket} {...match} {...this.props} />
-          )}
-        />
-      </Switch>
+      <div className="app">
+        <GameInfo />
+        <Switch>
+          <Route
+            exact
+            path="/"
+            component={() => <Lobby socket={socket} {...this.props} />}
+          />
+          <Route
+            path="/game/:roomID"
+            component={match => (
+              <Game socket={socket} {...match} {...this.props} />
+            )}
+          />
+        </Switch>
+      </div>
     );
   }
 }

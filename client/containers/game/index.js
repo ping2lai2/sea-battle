@@ -48,11 +48,10 @@ class Game extends React.Component {
     //TODO: при загрузке приходит ответ с сервера с флагом роли, сетки свернуть в ХОК, прокидывать с оппонента не просто клетку или корабль
     //TODO: а всю актуальную матрицу и лист уничтоженных кораблей
 
-    const { socket, setInfo } = this.props;
-    setInfo(phrases.wait);
-
+    const { socket } = this.props;
+    console.log('fuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu');
     //this.props.socket.emit(JOIN_GAME, roomID);//TODO:
-    socket.on(ALL_PLAYERS_CONNECTED, () => console.log('yes'));
+    socket.on(ALL_PLAYERS_CONNECTED, () => console.log('yes')); //дуплит аж 4 раза
     socket.emit(JOIN_GAME, this.props.match.params.roomID);
     // socket.on(OPPONENT_LEFT, this.handleOpponentDeparture);
     // socket.on(DISABLE_GAME, this.handleDisableGame); //TODO:
@@ -86,6 +85,9 @@ class Game extends React.Component {
       restoreInitialTimer,
     } = this.props;
     const hit = userData.busyCellsMatrix[cell.x][cell.y] == 5 ? true : false;
+    console.log('-89-/n',userData)
+    console.log(userData.busyCellsMatrix[cell.x][cell.y])
+    console.log('-9q-/n',hit);
     if (hit) {
       // индекс корабля, в который попали (а можно было бы дергать и индекс координаты)
       const shipIndex = userData.ships.findIndex(ship => {
@@ -94,6 +96,7 @@ class Game extends React.Component {
         });
       });
       putShipsCellToUserData(shipIndex, cell);
+      console.log('-98-/n',userData); 
       console.log(userData.ships[shipIndex].isDestroyed);
 
       //TODO: тут надо искать и проверять корректный корабль
@@ -109,6 +112,7 @@ class Game extends React.Component {
           socket.emit(OPPONENT_HAS_WON, { roomID: match.params.roomID });
         }
       } else {
+          console.log('yes1');
         socket.emit(SEND_SHOOT_FEEDBACK, {
           cell,
           hit,
@@ -117,6 +121,7 @@ class Game extends React.Component {
       }
       canUserShoot(false);
     } else {
+      console.log('yes1');
       socket.emit(SEND_SHOOT_FEEDBACK, {
         cell,
         hit,
@@ -125,12 +130,11 @@ class Game extends React.Component {
       canUserShoot(true);
     }
     putCellToUserData(cell);
-
-    console.log(userData.busyCellsMatrix);
+    console.log('-130-/n',userData);
     restoreInitialTimer();
   };
   // получили результат выстрела
-  handleReceiveShootFeedback = data => {
+  handleReceiveShootFeedback = data => { //проблемы где-то здесь
     // const { userData, socket, match, putCellToUserData } = this.props;
     if (data.hit) {
       this.props.canUserShoot(true);
@@ -163,7 +167,6 @@ class Game extends React.Component {
 
     return (
       <div className="game">
-        <GameInfo />
         <Time />
         <div className="field">
           <UserGrid {...userData} />

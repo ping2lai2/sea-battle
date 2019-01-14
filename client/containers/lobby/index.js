@@ -34,17 +34,19 @@ class Lobby extends React.Component {
     const { socket, history, setInfo } = this.props;
     setInfo(phrases.init);
     socket.on(RECEIVE_GAME_ROOM, gameRoom => {
+      console.log('fuuu');
       history.push(`/game/${gameRoom}`);
     });
   }
 
   _onClick = () => {
-    const { shipsPlacement, createGameData, socket, setInfo } = this.props; 
+    const { shipsPlacement, createGameData, socket, setInfo } = this.props;
     if (
       !shipsPlacement.ships.includes(undefined) //&& !shipsPlacement.ships.includes(null)
     ) {
       socket.emit(FIND_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
+      setInfo(phrases.wait);
     } else {
       setInfo(phrases.notPut);
     }
@@ -60,7 +62,6 @@ class Lobby extends React.Component {
     } = this.props;
     return (
       <div className="lobby">
-        <GameInfo />
         <div className="lobby__inner">
           <PlacementGrid
             ships={shipsPlacement.ships}
@@ -71,6 +72,7 @@ class Lobby extends React.Component {
             removeFromBusyCells={removeFromBusyCells}
             changeShipPosition={changeShipPosition}
           />
+
           <NewGameCreator canRunGame={this._onClick} />
         </div>
       </div>
