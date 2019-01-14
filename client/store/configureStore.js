@@ -17,7 +17,7 @@ const persistConfig = {
   storage,
 };
 
-//const persistedReducer = persistReducer(persistConfig, rootReducer(history));
+const persistedReducer = persistReducer(persistConfig, rootReducer(history));
 
 if (process.env.NODE_ENV === 'development') {
   const devToolsExtension = window.__REDUX_DEVTOOLS_EXTENSION__;
@@ -32,10 +32,9 @@ const composedEnhancers = compose(
   ...enhancers
 );
 
-export const store = createStore(
-  rootReducer(history),
-  //persistedReducer,
+export let store = createStore(
+  persistedReducer,
   initialState,
   composedEnhancers
 );
-//export let persistor = persistStore(store);
+export let persistor = persistStore(store);
