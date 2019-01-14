@@ -1,4 +1,4 @@
-import { CAN_USER_SHOOT } from '../actions/ships';
+import { CAN_USER_SHOOT } from '../actions';
 
 export const canShootReducer = (state = false, action) => {
   switch (action.type) {

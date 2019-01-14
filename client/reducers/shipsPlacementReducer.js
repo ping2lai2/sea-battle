@@ -4,7 +4,7 @@ import {
   ADD_TO_BUSY_CELLS,
   REMOVE_FROM_BUSY_CELLS,
   CHANGE_SHIP_POSITION,
-} from '../actions/ships';
+} from '../actions';
 
 const initialState = {
   ships: Array(10),
@@ -52,7 +52,7 @@ export const shipsPlacementReducer = (state = initialState, action) => {
   case CLEAR_SHIPS_DATA: {
     return {
       ships: Array(10),
-      busyCellsMatrix: Array.from(Array(10), () => Array(10).fill(0)), //TODO: что-то надо придумать сэтим, не торт же
+      busyCellsMatrix: Array.from(Array(10), () => Array(10).fill(0)),
     };
   }
   default:

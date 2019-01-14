@@ -1,14 +1,13 @@
 import React from 'react';
-import { Route, Switch } from 'react-router';
+import { Route, Router, Switch } from 'react-router';
 
 import Lobby from '../../containers/lobby';
 import Game from '../../containers/game';
 
-import io from 'socket.io-client';
+import socket from '../../socket';
 
 import './style.css';
 
-const socket = io('http://localhost:3333');
 
 // TODO: поглядеть, что пробрасываешь
 class App extends React.Component {

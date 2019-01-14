@@ -2,7 +2,7 @@ import {
   CREATE_OPPONENT_DATA,
   PUT_CELL_TO_OPPONENT_DATA,
   PUT_SHIP_TO_OPPONENT_DATA,
-} from '../actions/ships';
+} from '../actions';
 
 const initialState = {
   ships: Array(10),

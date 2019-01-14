@@ -7,7 +7,8 @@ import {
   putShipsCellToUserData,
   putCellToOpponentData,
   putShipToOpponentData,
-} from '../../actions/ships';
+  restoreInitialTimer,
+} from '../../actions';
 
 import Chat from '../chat';
 import Time from '../../components/time';
@@ -45,7 +46,6 @@ class Game extends React.Component {
 
     const { socket } = this.props;
 
-    // const { roomID } = this.props.match.params;
     //this.props.socket.emit(JOIN_GAME, roomID);//TODO:
     socket.on(ALL_PLAYERS_CONNECTED, () => console.log('yes'));
     socket.emit(JOIN_GAME, this.props.match.params.roomID);
@@ -62,10 +62,11 @@ class Game extends React.Component {
     this.props.canUserShoot(true);
   };
   handleSendShoot = cell => {
-    const { canShoot, match, canUserShoot } = this.props;
+    const { canShoot, match, canUserShoot, restoreInitialTimer } = this.props;
     if (canShoot) {
       this.props.socket.emit(SEND_SHOOT, { roomID: match.params.roomID, cell });
       canUserShoot(false);
+      restoreInitialTimer();
     }
   };
   //противник получил и обработал
@@ -77,6 +78,7 @@ class Game extends React.Component {
       putCellToUserData,
       putShipsCellToUserData,
       canUserShoot,
+      restoreInitialTimer,
     } = this.props;
     const hit = userData.busyCellsMatrix[cell.x][cell.y] == 5 ? true : false;
     if (hit) {
@@ -120,6 +122,7 @@ class Game extends React.Component {
     putCellToUserData(cell);
 
     console.log(userData.busyCellsMatrix);
+    restoreInitialTimer();
   };
   // получили результат выстрела
   handleReceiveShootFeedback = data => {
@@ -150,12 +153,11 @@ class Game extends React.Component {
   };
 
   render() {
-    console.log(this.props);
-    const { userData, opponentData, canShoot } = this.props;
+    const { userData, opponentData } = this.props;
 
     return (
       <>
-        <Time canShoot={canShoot} />
+        <Time />
         <div className="field">
           <UserGrid {...userData} />
           <OpponentGrid {...opponentData} sendShoot={this.handleSendShoot} />
@@ -175,6 +177,7 @@ const mapStateToProps = ({ userData, opponentData, canShoot }) => ({
 
 const mapDispatchToProps = dispatch => ({
   canUserShoot: bool => dispatch(canUserShoot(bool)),
+  restoreInitialTimer: () => dispatch(restoreInitialTimer()),
   putCellToUserData: cell => dispatch(putCellToUserData(cell)),
   putShipsCellToUserData: (shipIndex, cell) =>
     dispatch(putShipsCellToUserData(shipIndex, cell)), //меняем флаг isDestroyed у одной ячейки корабля и у всего корабля

@@ -9,7 +9,7 @@ import {
   removeFromBusyCells,
   changeShipPosition,
   createGameData,
-} from '../../actions/ships';
+} from '../../actions';
 
 import {
   REQUEST_GAME_ROOM,
@@ -36,7 +36,7 @@ class Lobby extends React.Component {
 
   _onClick = () => {
     const { shipsPlacement, createGameData, socket } = this.props;
-    if (!shipsPlacement.ships.includes(undefined)) {
+    if (!shipsPlacement.ships.includes(undefined) && !shipsPlacement.ships.includes(null)) {
       socket.emit(FIND_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
     }
@@ -50,7 +50,6 @@ class Lobby extends React.Component {
       removeFromBusyCells,
       changeShipPosition,
     } = this.props;
-
     return (
       <div className="lobby">
         <PlacementGrid

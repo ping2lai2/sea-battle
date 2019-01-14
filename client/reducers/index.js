@@ -4,6 +4,7 @@ import { shipsPlacementReducer } from './shipsPlacementReducer';
 import { userDataReducer } from './userDataReducer';
 import { opponentDataReducer } from './opponentDataReducer';
 import { canShootReducer } from './canShootReducer';
+import { timerReducer } from './timerReducer';
 
 export const rootReducer = history =>
   combineReducers({
@@ -11,5 +12,6 @@ export const rootReducer = history =>
     userData: userDataReducer,
     opponentData: opponentDataReducer,
     canShoot: canShootReducer,
+    timer: timerReducer,
     router: connectRouter(history),
   });

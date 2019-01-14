@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
-import { Route, Switch } from 'react-router';
-import { history, store } from './store/configureStore';
+import { history, store, persistor } from './store/configureStore';
+import { PersistGate } from 'redux-persist/integration/react';
 import App from './components/app';
 
 import Lobby from './containers/lobby';
@@ -18,14 +18,16 @@ document.body.appendChild(root);
 
 render(
   <Provider store={store}>
-    <ConnectedRouter history={history}>
-      <App history={history}>
-        {/*<Switch>
+    <PersistGate loading={null} persistor={persistor}>
+      <ConnectedRouter history={history}>
+        <App history={history}>
+          {/*<Switch>
           <Route exact path="/" component={Lobby} />
           <Route path="/:gameRoom" component={Game} />
         </Switch>*/}
-      </App>
-    </ConnectedRouter>
+        </App>
+      </ConnectedRouter>
+    </PersistGate>
   </Provider>,
   root
 );

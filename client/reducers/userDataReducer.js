@@ -3,7 +3,7 @@ import {
   PUT_CELL_TO_USER_DATA,
   PUT_SHIP_TO_USER_DATA,
   PUT_SHIPS_CELL_TO_USER_DATA,
-} from '../actions/ships';
+} from '../actions';
 
 const initialState = {
   ships: Array(10),
@@ -11,10 +11,8 @@ const initialState = {
 };
 
 export const userDataReducer = (state = initialState, action) => {
-  console.log(action);
   switch (action.type) {
   case CREATE_USER_DATA: {
-    console.log(action.ships, action.busyCellsMatrix);
     return {
       ...state,
       ships: action.ships,

@@ -1,57 +1,41 @@
 import React from 'react';
+import { connect } from 'react-redux';
+import { decrementTimer } from '../../actions';
 
 import './style.css';
 
 class GameInfo extends React.PureComponent {
-  state = {
-    timer: null,
-    counter: 30,
-    canShoot: this.props.canShoot,
-  };
-  componentDidMount() {
-    let timer = setInterval(this.tick, 1000);
-    this.setState({ timer });
+  constructor(props) {
+    super(props);
+    this.timerR = null;
   }
-  static getDerivedStateFromProps(props, state) {
-    if (props.canShoot !== state.canShoot) {
-      return {
-        canShoot: props.canShoot,
-        counter: 30,
-      };
-    }
-    return null;
+
+  componentDidMount() {
+    const { decrementTimer } = this.props;
+    this.timer = setInterval(decrementTimer, 1000);
   }
   componentWillUnmount() {
-    clearInterval(this.state.timer);
+    clearInterval(this.timer);
   }
-  tick = () => {
-    if (this.state.counter !== 0) {
-      this.setState({
-        counter: this.state.counter - 1,
-      });
-    } else {
-      console.log('fired');
-    }
-  };
 
   render() {
     return (
       <div className="game-information">
-        <div className="time">{this.state.counter}</div>
+        <div className="time">{this.props.timer}</div>
         <div className="game-state">{'you loose'}</div>
       </div>
     );
   }
 }
 
-/*
-const GameInfo = ({}) => (
-  <div className="game-information">
-    <div className="time">{'10: 10'}</div>
-    <div className="game-state">{'you loose'}</div>
-  </div>
-);
-*/
-//TODO: проптайпс
+const mapStateToProps = ({ timer }) => timer;
 
-export default GameInfo;
+const mapDispatchToProps = dispatch => ({
+  decrementTimer: () => dispatch(decrementTimer()),
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(GameInfo);
+

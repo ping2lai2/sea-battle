@@ -17,7 +17,11 @@ export const PUT_CELL_TO_USER_DATA = 'PUT_CELL_TO_USER_DATA';
 export const PUT_SHIP_TO_USER_DATA = 'PUT_SHIP_TO_USER_DATA';
 export const PUT_SHIPS_CELL_TO_USER_DATA = 'PUT_SHIPS_CELL_TO_USER_DATA';
 
-//TODO: TIMER ЕЩЕ
+export const DECREMENT_TIMER = 'DECREMENT_TIMER';
+export const RESTORE_INITIAL_TIMER = 'RESTORE_INITIAL_TIMER';
+
+
+
 //TODO: ВЕРНИ ПЭЙЛОАД
 
 /*_________________ LOBBY ACTIONS______________________ */
@@ -97,3 +101,16 @@ export const putShipsCellToUserData = (index, cell) => ({
   index,
   cell,
 });
+
+
+
+/*_________________ TIMER ACTIONS____________________ */
+
+export const decrementTimer = () => ({
+  type: DECREMENT_TIMER,
+});
+
+export const restoreInitialTimer = () => ({
+  type: RESTORE_INITIAL_TIMER,
+});
+  
