@@ -3,10 +3,10 @@ import { routerMiddleware } from 'connected-react-router';
 import { persistStore, persistReducer } from 'redux-persist';
 import { rootReducer } from '../reducers';
 import storage from 'redux-persist/lib/storage';
-import { createBrowserHistory } from 'history'; //TODO: вернуть Browser
+import { createBrowserHistory } from 'history';
 import thunk from 'redux-thunk';
 
-export const history = createBrowserHistory(); //TODO: и здесь
+export const history = createBrowserHistory();
 
 const initialState = {};
 const middleware = [thunk, routerMiddleware(history)];
@@ -15,6 +15,7 @@ const enhancers = [];
 const persistConfig = {
   key: 'root',
   storage,
+  blacklist: ['timer', 'winnerStatus'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer(history));

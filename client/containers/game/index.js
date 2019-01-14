@@ -14,7 +14,7 @@ import {
 } from '../../actions';
 
 import Chat from '../chat';
-import Time from '../../components/time';
+import Timer from '../../containers/timer';
 import UserGrid from '../../components/user-grid';
 import OpponentGrid from '../../components/opponent-grid';
 import GameInfo from '../../containers/game-info';
@@ -167,7 +167,7 @@ class Game extends React.Component {
 
     return (
       <div className="game">
-        <Time />
+        <Timer />
         <div className="field">
           <UserGrid {...userData} />
           <OpponentGrid {...opponentData} sendShoot={this.handleSendShoot} />

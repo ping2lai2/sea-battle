@@ -7,6 +7,7 @@ export const RECALCULATE_SHIPS_DATA = 'RECALCULATE_SHIPS_DATA';
 /********************************************************/
 
 export const CAN_USER_SHOOT = 'CAN_USER_SHOOT';
+export const DETERMINE_WINNER = 'DETERMINE_WINNER';
 
 export const CREATE_USER_DATA = 'CREATE_USER_DATA';
 export const CREATE_OPPONENT_DATA = 'CREATE_OPPONENT_DATA';
@@ -101,6 +102,11 @@ export const putShipsCellToUserData = (index, cell) => ({
   cell,
 });
 
+export const determineWinner = bool => ({
+  type: DETERMINE_WINNER,
+  bool,
+});
+
 /*_________________ TIMER ACTIONS____________________ */
 
 export const decrementTimer = () => ({
@@ -110,6 +116,16 @@ export const decrementTimer = () => ({
 export const restoreInitialTimer = () => ({
   type: RESTORE_INITIAL_TIMER,
 });
+
+/*
+export const decrementTimerWithCheck = time => dispatch => {
+  if (time !== 0) {
+    dispatch(decrementTimer());
+  } else {
+    dispatch(determineWinner(false));
+  }
+};
+*/
 
 /*_________________ GAME INFO ACTIONS__________________ */
 
