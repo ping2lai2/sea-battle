@@ -19,12 +19,8 @@ class GameInfo extends React.PureComponent {
   }
 
   render() {
-    return (
-      <div className="game-information">
-        <div className="time">{this.props.timer}</div>
-        <div className="game-state">{'you loose'}</div>
-      </div>
-    );
+    const { timer } = this.props;
+    return <div className="time">{timer}</div>;
   }
 }
 
@@ -38,4 +34,3 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(GameInfo);
-

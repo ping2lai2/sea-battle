@@ -1,5 +1,5 @@
 .chat {
-  display: flex;
+  display: none;
   font-size: 80px;
   width: 100%;
   height: 100px;

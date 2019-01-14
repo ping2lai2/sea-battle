@@ -1,5 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
+
 import {
   canUserShoot,
   putCellToUserData,
@@ -8,14 +10,16 @@ import {
   putCellToOpponentData,
   putShipToOpponentData,
   restoreInitialTimer,
+  setInfo,
 } from '../../actions';
 
 import Chat from '../chat';
 import Time from '../../components/time';
 import UserGrid from '../../components/user-grid';
 import OpponentGrid from '../../components/opponent-grid';
+import GameInfo from '../../containers/game-info';
 
-import PropTypes from 'prop-types';
+import phrases from '../../api/phrases';
 
 import './style.css';
 
@@ -44,7 +48,8 @@ class Game extends React.Component {
     //TODO: при загрузке приходит ответ с сервера с флагом роли, сетки свернуть в ХОК, прокидывать с оппонента не просто клетку или корабль
     //TODO: а всю актуальную матрицу и лист уничтоженных кораблей
 
-    const { socket } = this.props;
+    const { socket, setInfo } = this.props;
+    setInfo(phrases.wait);
 
     //this.props.socket.emit(JOIN_GAME, roomID);//TODO:
     socket.on(ALL_PLAYERS_CONNECTED, () => console.log('yes'));
@@ -138,6 +143,7 @@ class Game extends React.Component {
     console.log(data);
     this.props.canUserShoot(true);
     this.props.putShipToOpponentData(data.index, data.ship);
+    console.log(this.props.opponentData);
   };
 
   handleUserHasWon = () => {
@@ -156,14 +162,15 @@ class Game extends React.Component {
     const { userData, opponentData } = this.props;
 
     return (
-      <>
+      <div className="game">
+        <GameInfo />
         <Time />
         <div className="field">
           <UserGrid {...userData} />
           <OpponentGrid {...opponentData} sendShoot={this.handleSendShoot} />
         </div>
         <Chat />
-      </>
+      </div>
     );
   }
 }
@@ -186,6 +193,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(putCellToOpponentData(cell, hit)),
   putShipToOpponentData: (index, ship) =>
     dispatch(putShipToOpponentData(index, ship)),
+  setInfo: phrase => dispatch(setInfo(phrase)),
 });
 
 Game.propTypes = {

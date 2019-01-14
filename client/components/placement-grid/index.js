@@ -38,7 +38,7 @@ class PlacementGrid extends React.Component {
     //TODO: можно тестить пропсы на наличие данных о местоположении кораблей, если есть, то не генерировать заново
     //TODO: не понял, почему с every() не работает то же самое
     //TODO: this.props.ships. деструктурируй
-    if (ships.includes(undefined) || ships.includes(null) ) {
+    if (ships.includes(undefined)) { //  || ships.includes(null) 
       this.canvasShipsData = hardClone(abroadShips);
     } else {
       this.canvasShipsData = hardClone(createCanvasData(ships));

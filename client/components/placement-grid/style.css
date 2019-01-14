@@ -1,6 +1,7 @@
 .user-field {
   display: flex;
   flex-direction: column;
+  padding: 0 20px;
 }
 .user-grid {
   border-radius: 4px;

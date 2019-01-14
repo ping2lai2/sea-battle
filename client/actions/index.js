@@ -20,8 +20,7 @@ export const PUT_SHIPS_CELL_TO_USER_DATA = 'PUT_SHIPS_CELL_TO_USER_DATA';
 export const DECREMENT_TIMER = 'DECREMENT_TIMER';
 export const RESTORE_INITIAL_TIMER = 'RESTORE_INITIAL_TIMER';
 
-
-
+export const SET_INFO = 'SET_INFO';
 //TODO: ВЕРНИ ПЭЙЛОАД
 
 /*_________________ LOBBY ACTIONS______________________ */
@@ -102,8 +101,6 @@ export const putShipsCellToUserData = (index, cell) => ({
   cell,
 });
 
-
-
 /*_________________ TIMER ACTIONS____________________ */
 
 export const decrementTimer = () => ({
@@ -113,4 +110,10 @@ export const decrementTimer = () => ({
 export const restoreInitialTimer = () => ({
   type: RESTORE_INITIAL_TIMER,
 });
-  
+
+/*_________________ GAME INFO ACTIONS__________________ */
+
+export const setInfo = phrase => ({
+  type: SET_INFO,
+  phrase,
+});

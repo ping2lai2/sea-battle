@@ -43,7 +43,7 @@ export const shipsData = [4, 3, 2, 1]; // 4-cell: 1, 3-cell: 2...
 export const createCanvasData = ships => {
   //immutable
   return ships.map(ship => {
-    if (ship === undefined || ship === null ) {
+    if (ship === undefined) { //|| ship === null 
       return undefined;
     }
     const length = ship.coordinates.length - 1;

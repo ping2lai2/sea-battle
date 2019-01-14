@@ -9,17 +9,20 @@ import {
   removeFromBusyCells,
   changeShipPosition,
   createGameData,
+  setInfo,
 } from '../../actions';
+
+import phrases from '../../api/phrases';
 
 import {
   REQUEST_GAME_ROOM,
   RECEIVE_GAME_ROOM,
   FIND_ROOM,
-  
 } from '../../../common/socketEvents';
 
 import PlacementGrid from '../../components/placement-grid';
 import NewGameCreator from '../../components/new-game-creator';
+import GameInfo from '../../containers/game-info';
 
 import './style.css';
 
@@ -28,17 +31,22 @@ class Lobby extends React.Component {
     super(props);
   }
   componentDidMount() {
-    const { socket, history } = this.props;
+    const { socket, history, setInfo } = this.props;
+    setInfo(phrases.init);
     socket.on(RECEIVE_GAME_ROOM, gameRoom => {
       history.push(`/game/${gameRoom}`);
     });
   }
 
   _onClick = () => {
-    const { shipsPlacement, createGameData, socket } = this.props;
-    if (!shipsPlacement.ships.includes(undefined) && !shipsPlacement.ships.includes(null)) {
+    const { shipsPlacement, createGameData, socket, setInfo } = this.props; 
+    if (
+      !shipsPlacement.ships.includes(undefined) //&& !shipsPlacement.ships.includes(null)
+    ) {
       socket.emit(FIND_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
+    } else {
+      setInfo(phrases.notPut);
     }
   };
   render() {
@@ -52,16 +60,19 @@ class Lobby extends React.Component {
     } = this.props;
     return (
       <div className="lobby">
-        <PlacementGrid
-          ships={shipsPlacement.ships}
-          busyCellsMatrix={shipsPlacement.busyCellsMatrix}
-          recalculateShipsData={recalculateShipsData}
-          clearShipsData={clearShipsData}
-          addToBusyCells={addToBusyCells}
-          removeFromBusyCells={removeFromBusyCells}
-          changeShipPosition={changeShipPosition}
-        />
-        <NewGameCreator canRunGame={this._onClick} />
+        <GameInfo />
+        <div className="lobby__inner">
+          <PlacementGrid
+            ships={shipsPlacement.ships}
+            busyCellsMatrix={shipsPlacement.busyCellsMatrix}
+            recalculateShipsData={recalculateShipsData}
+            clearShipsData={clearShipsData}
+            addToBusyCells={addToBusyCells}
+            removeFromBusyCells={removeFromBusyCells}
+            changeShipPosition={changeShipPosition}
+          />
+          <NewGameCreator canRunGame={this._onClick} />
+        </div>
       </div>
     );
   }
@@ -69,9 +80,8 @@ class Lobby extends React.Component {
 
 // TODO: проптайпс где?
 
-const mapStateToProps = ({ shipsPlacement}) => ({
+const mapStateToProps = ({ shipsPlacement }) => ({
   shipsPlacement,
-
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -90,6 +100,7 @@ const mapDispatchToProps = dispatch => ({
   createGameData: (ships, busyCellsMatrix) =>
     dispatch(createGameData(ships, busyCellsMatrix)),
 
+  setInfo: phrase => dispatch(setInfo(phrase)),
 });
 
 Lobby.propTypes = {
@@ -105,10 +116,10 @@ Lobby.propTypes = {
   createGameData: PropTypes.func.isRequired,
   history: PropTypes.object.isRequired,
   socket: PropTypes.object.isRequired,
+  setInfo: PropTypes.func.isRequired,
 };
 
 export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(Lobby);
-
