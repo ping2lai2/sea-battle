@@ -42,7 +42,8 @@ class Lobby extends React.Component {
   _onClick = () => {
     const { shipsPlacement, createGameData, socket, setInfo } = this.props;
     if (
-      !shipsPlacement.ships.includes(undefined) //&& !shipsPlacement.ships.includes(null)
+      !shipsPlacement.ships.includes(undefined) &&
+      !shipsPlacement.ships.includes(null) //&& !shipsPlacement.ships.includes(null)
     ) {
       socket.emit(FIND_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);

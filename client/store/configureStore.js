@@ -3,10 +3,10 @@ import { routerMiddleware } from 'connected-react-router';
 import { persistStore, persistReducer } from 'redux-persist';
 import { rootReducer } from '../reducers';
 import storage from 'redux-persist/lib/storage';
-import { createHashHistory } from 'history'; //TODO: вернуть Browser
+import { createBrowserHistory } from 'history'; //TODO: вернуть Browser
 import thunk from 'redux-thunk';
 
-export const history = createHashHistory(); //TODO: и здесь
+export const history = createBrowserHistory(); //TODO: и здесь
 
 const initialState = {};
 const middleware = [thunk, routerMiddleware(history)];

@@ -5,6 +5,7 @@ import {
   drawShips,
   createCanvasData,
   createDataForShip,
+  drawShipsMap,
   drawMatrixState,
   getCanvasCellCoordinate,
   drawShootAccessFrame,
@@ -44,6 +45,7 @@ class UserGrid extends React.Component {
     drawGrid(ctx);
     drawShips(ctx, ships);
     drawMatrixState(ctx, busyCellsMatrix, true);
+    drawShipsMap(ctx, ships);
   };
   //TODO: прокидываю width={this.width} а ещё есть this.canvas.current.widt this.canvasWidth, что хотел - хз
   render() {

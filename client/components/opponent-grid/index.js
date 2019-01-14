@@ -7,6 +7,7 @@ import {
   createDataForShip,
   getCanvasCellCoordinate,
   drawMatrixState,
+  drawShipsMap,
   drawShootAccessFrame,
   getCurrentCellOnGrid,
 } from '../../api/canvasLogic';
@@ -48,6 +49,7 @@ class OpponentGrid extends React.Component {
     drawGrid(ctx);
     drawShips(ctx, ships);
     drawMatrixState(ctx, busyCellsMatrix);
+    drawShipsMap(ctx, ships)
   };
   _mouseDown = e => {
     const { sendShoot, busyCellsMatrix } = this.props;

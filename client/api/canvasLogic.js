@@ -10,7 +10,7 @@ const lineGridSize = 1,
 
 const mainColor = 'rgba(50,50,150,0.3)',
   mainStrokeColor = '#0101c1',
-  destroyedMainColor = 'rgba(250,50,100,0.3)',
+  destroyedMainColor = 'rgba(250,50,100,0.5)',
   destroyedMainStrokeColor = '#a10141',
   strokeWidth = 1, //px
   frameWidth = 3, //px
@@ -43,7 +43,8 @@ export const shipsData = [4, 3, 2, 1]; // 4-cell: 1, 3-cell: 2...
 export const createCanvasData = ships => {
   //immutable
   return ships.map(ship => {
-    if (ship === undefined) { //|| ship === null 
+    if (ship === undefined || ship === null) {
+      //|| ship === null
       return undefined;
     }
     const length = ship.coordinates.length - 1;
@@ -290,4 +291,53 @@ export const drawShootAccessFrame = (ctx, x, y) => {
   }
 
   ctx.closePath();
+};
+
+const mapCellSize = 12,
+  mapCellOffset = 2,
+  mapShipsOffsetLeft = 8,
+  mapShipsOffsetTop = 12;
+
+export const generateShipsMapData = (ships = [4, 3, 2, 1]) => {
+  const shipsMapData = [];
+  for (let i = 0; i < ships.length; i++) {
+    const currentShipType = ships[i];
+    for (let j = 0; j <= i; j++) {
+      const ship = {};
+      ship.x =
+        offsetLeft +
+        gridSize +
+        cellSize / 2 +
+        (currentShipType * (mapCellSize + mapCellOffset) + mapShipsOffsetLeft) *
+          j;
+      ship.y = offsetTop + (mapCellSize + mapShipsOffsetTop) * i;
+      ship.type = currentShipType;
+      shipsMapData.push(ship);
+    }
+  }
+  return shipsMapData;
+};
+export const shipsMapData = generateShipsMapData();
+
+export const drawShipsMapCells = (shipData, ctx, color) => {
+  for (let j = 0; j < shipData.type; j++) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.fillRect(
+      shipData.x + j * (mapCellOffset + mapCellSize),
+      shipData.y,
+      mapCellSize,
+      mapCellSize
+    );
+    ctx.closePath();
+  }
+};
+export const drawShipsMap = (ctx, ships) => {
+  ships.forEach((ship, i) => {
+    if (!ship || ship.isDestroyed === false) {
+      drawShipsMapCells(shipsMapData[i], ctx, mainColor);
+    } else {
+      drawShipsMapCells(shipsMapData[i], ctx, destroyedMainColor);
+    }
+  });
 };
