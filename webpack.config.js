@@ -3,7 +3,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-//const merge = require('webpack-merge');
+
 //const CleanWebpackPlugin = require('clean-webpack-plugin');
 //const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
@@ -26,6 +26,7 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     contentBase: './dist',
+    disableHostCheck: true,  
     port: 3000,
     open: true,
   },
@@ -47,18 +48,6 @@ module.exports = {
           'postcss-loader',
         ],
       },
-      {
-        test: /\.(png|jp(e*)g|svg)$/, //TODO: dont forget delete
-        use: [
-          {
-            loader: 'url-loader',
-            options: {
-              limit: 8000, // Convert images < 8kb to base64 strings
-              name: 'images/[name].[ext]',
-            },
-          },
-        ],
-      },
     ],
   },
   plugins: [
@@ -73,13 +62,3 @@ module.exports = {
     new webpack.HotModuleReplacementPlugin(),
   ],
 };
-
-/*
-module.exports = (env, { mode }) => {
-  if (mode == 'production') {
-    return merge(commonConfig, prodConfig);
-  }
-
-  return commonConfig;
-};
-*/

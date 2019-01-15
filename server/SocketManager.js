@@ -82,10 +82,14 @@ module.exports = function(io) {
     socket.on(SEND_MESSAGE, handleReceiveMessage);
 
     function handleOpponentWinning(payload) {
+      console.log('good');
+      console.log(payload);
+      console.log(payload.roomID);
       socket.broadcast.to(payload.roomID).emit(USER_HAS_WON);
     }
 
     function handleSendDestroyedShip(payload) {
+      
       socket.broadcast.to(payload.roomID).emit(RECEIVE_DESTROYED_SHIP, {
         index: payload.index,
         ship: payload.ship,

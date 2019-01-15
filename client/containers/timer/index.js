@@ -19,8 +19,6 @@ class Timer extends React.PureComponent {
     this.timer = null;
   }
   componentDidMount() {
-
-
     const decrementTimerWrap = () => {
       const {
         socket,
@@ -36,7 +34,7 @@ class Timer extends React.PureComponent {
         clearInterval(this.timer);
         if (canShoot) {
           this.props.setInfo(phrases.loose);
-          socket.emit(OPPONENT_HAS_WON, roomID);
+          socket.emit(OPPONENT_HAS_WON, { roomID });
           determineWinner(false);
         }
         disableGame();
@@ -58,11 +56,10 @@ class Timer extends React.PureComponent {
     return <div className="timer">{this.props.timer}</div>;
   }
 }
-const mapStateToProps = ({ timer, winnerStatus, canShoot, gameStatus }) => ({
+const mapStateToProps = ({ timer, winnerStatus, canShoot }) => ({
   ...timer,
   canShoot,
   winnerStatus,
-  gameStatus,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -82,7 +79,6 @@ Timer.propTypes = {
   socket: PropTypes.object.isRequired,
   roomID: PropTypes.string.isRequired,
   winnerStatus: PropTypes.bool,
-  restoreInitialTimer: PropTypes.func.isRequired,
   disableGame: PropTypes.func.isRequired,
 };
 

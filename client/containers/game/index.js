@@ -106,6 +106,7 @@ class Game extends React.Component {
       restoreInitialTimer,
       setInfo,
       determineWinner,
+      disableGame
     } = this.props;
     const hit = userData.busyCellsMatrix[cell.x][cell.y] == 5 ? true : false;
 
@@ -128,6 +129,7 @@ class Game extends React.Component {
           setInfo(phrases.loose);
           determineWinner(false);
           socket.emit(OPPONENT_HAS_WON, { roomID: match.params.roomID });
+          disableGame();
         }
       } else {
         socket.emit(SEND_SHOOT_FEEDBACK, {
@@ -175,20 +177,22 @@ class Game extends React.Component {
   };
 
   handleOpponentLeft = () => {
-    const { setInfo, determineWinner } = this.props;
-    setInfo(phrases.disconnect);
-    determineWinner(true);
-    disableGame();
+    const { setInfo, determineWinner, gameStatus } = this.props;
+    if (!gameStatus) {
+      setInfo(phrases.disconnect);
+      determineWinner(true);
+      disableGame();
+    }
+    
   };
 
   render() {
-    const { userData, opponentData, socket, match, gameStatus } = this.props;
-
+    const { userData, opponentData, socket, match, gameStatus, winnerStatus } = this.props;
     return (
       <div className="game">
         <div className="game-head">
           {gameStatus ? (
-            <Timer socket={socket} roomID={match.params.roomID} />
+            <Timer socket={socket} roomID={match.params.roomID}  winnerStatus={winnerStatus}/>
           ) : (
             <a className="return-button" href="/">
               назад
