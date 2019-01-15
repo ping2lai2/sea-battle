@@ -1,11 +1,11 @@
 import React from 'react';
 
+import PropTypes from 'prop-types';
+
 import {
   drawGrid,
   drawShips,
   createCanvasData,
-  createDataForShip,
-  getCanvasCellCoordinate,
   drawMatrixState,
   drawShipsMap,
   drawShootAccessFrame,
@@ -16,14 +16,11 @@ import { hardClone } from '../../api/mainLogic';
 
 import './style.css';
 
-//TODO: нужно в хок скрутить, они идентичны практически по функционалу
-
 
 class OpponentGrid extends React.Component {
   constructor(props) {
     super(props);
     this.canvas = React.createRef();
-    //TODO проще прокинуть в пропсы
     this.canvasWidth = 520;
     this.canvasHeight = 400;
     this.ctx = null;
@@ -43,38 +40,35 @@ class OpponentGrid extends React.Component {
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
     //console.log(this.canvasShipsdata);
   }
-  
+
   drawCanvas = (ctx, ships, busyCellsMatrix) => {
     ctx.clearRect(0, 0, this.canvas.current.width, this.canvas.current.height);
     drawGrid(ctx);
     drawShips(ctx, ships);
     drawMatrixState(ctx, busyCellsMatrix);
-    drawShipsMap(ctx, ships)
+    drawShipsMap(ctx, ships);
   };
   _mouseDown = e => {
     const { sendShoot, busyCellsMatrix } = this.props;
+
     const mx = parseInt(e.nativeEvent.offsetX);
     const my = parseInt(e.nativeEvent.offsetY);
 
-    //TODO: сначала сверить с данными, потом отправлять
-    //console.log(busyCellsMatrix);
     const cell = getCurrentCellOnGrid({ x: mx, y: my });
     cell && busyCellsMatrix[cell.x][cell.y] === 0 && sendShoot(cell);
-    //cell && this.props.sendShoot(cell);
   };
   _mouseMove = e => {
-    //check opponentsMatrix
+    const { ships, busyCellsMatrix } = this.props;
+
     const mx = parseInt(e.nativeEvent.offsetX);
     const my = parseInt(e.nativeEvent.offsetY);
-    const { ships, busyCellsMatrix } = this.props;
+
     this.canvasShipsData = hardClone(createCanvasData(ships));
-    
+
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
     drawShootAccessFrame(this.ctx, mx, my);
-
   };
   render() {
-    //const {} = this.props;
     return (
       <div className="grid">
         <canvas
@@ -89,7 +83,10 @@ class OpponentGrid extends React.Component {
   }
 }
 
-export default OpponentGrid;
+OpponentGrid.propTypes = {
+  ships: PropTypes.array.isRequired,
+  busyCellsMatrix: PropTypes.array.isRequired,
+  sendShoot: PropTypes.func.isRequired,
+};
 
-//TODO: проптайпс
-// TODO: деление на user-opponent для наблюдателя условное или хрен знает, надо думать, одному сложновато
+export default OpponentGrid;

@@ -34,11 +34,8 @@ class PlacementGrid extends React.Component {
     this.canvas.current.width = 640;
     this.canvas.current.height = 400;
     this.ctx = this.canvas.current.getContext('2d');
-    const {ships} = this.props
-    //TODO: можно тестить пропсы на наличие данных о местоположении кораблей, если есть, то не генерировать заново
-    //TODO: не понял, почему с every() не работает то же самое
-    //TODO: this.props.ships. деструктурируй
-    if (ships.includes(undefined) || ships.includes(null)) { //  || ships.includes(null) 
+    const { ships } = this.props;
+    if (ships.includes(undefined) || ships.includes(null)) {
       this.canvasShipsData = hardClone(abroadShips);
     } else {
       this.canvasShipsData = hardClone(createCanvasData(ships));
@@ -63,10 +60,7 @@ class PlacementGrid extends React.Component {
     this.drawCanvas(this.ctx, this.canvasShipsData);
   };
 
-  // TODO: всплытия останови и прочее
-
   _mouseDown = e => {
-    //current mouse position
     const mx = parseInt(e.nativeEvent.offsetX);
     const my = parseInt(e.nativeEvent.offsetY);
     this.shipIndex = this.canvasShipsData.findIndex(
@@ -79,13 +73,10 @@ class PlacementGrid extends React.Component {
 
     if (this.shipIndex >= 0) {
       this.canvasShip = this.canvasShipsData[this.shipIndex];
-
       if (isShipOnGrid(this.canvasShip)) {
         this.props.removeFromBusyCells(this.shipIndex);
       }
-
       this.clonedCanvasShip = { ...this.canvasShipsData[this.shipIndex] };
-
       this.canvasShip.ox = mx;
       this.canvasShip.oy = my;
     } else {
@@ -110,15 +101,19 @@ class PlacementGrid extends React.Component {
   };
 
   _mouseUp = () => {
+    const {
+      ships,
+      busyCellsMatrix,
+      changeShipPosition,
+      addToBusyCells,
+    } = this.props;
+    
     if (this.shipIndex !== null) {
       // мы на сетке?
       if (isShipOnGrid(this.canvasShip)) {
         //получаем новые данные корабля, который мы пытаемся воткнуть
         // если на месте нового корабля уже есть корабль, то возвращает false
-        const newShip = canPutShipInCell(
-          this.canvasShip,
-          this.props.busyCellsMatrix
-        );
+        const newShip = canPutShipInCell(this.canvasShip, busyCellsMatrix);
         // мы на позиции другого корабля?
         if (newShip) {
           // дополняем остальными данными
@@ -131,7 +126,7 @@ class PlacementGrid extends React.Component {
             newShip.y + newShip.height - 1
           );
           // обновляем данные списка кораблей
-          this.props.changeShipPosition(this.shipIndex, newShip);
+          changeShipPosition(this.shipIndex, newShip);
 
           //правим данные у канваса
           const coords = restoreCellCoordinate(
@@ -142,7 +137,7 @@ class PlacementGrid extends React.Component {
         } else {
           // наш корабль попал на другой корабь
           // мы изначально были на сетке?
-          if (this.props.ships[this.shipIndex]) {
+          if (ships[this.shipIndex]) {
             // возвращаем в положение, занимаемое им ранее
             this.canvasShipsData[this.shipIndex] = {
               ...this.clonedCanvasShip,
@@ -159,7 +154,7 @@ class PlacementGrid extends React.Component {
           }
         }
         // наш корабль на сетке, так что надо обновить данные в матрице
-        this.props.addToBusyCells(this.shipIndex);
+        addToBusyCells(this.shipIndex);
       } else {
         //не на сетке
         // перемещаем изображение за пределы сетки
@@ -167,7 +162,7 @@ class PlacementGrid extends React.Component {
           ...abroadShips[this.shipIndex],
         };
         // зачищаем данные в списке кораблей
-        this.props.changeShipPosition(this.shipIndex, undefined);
+        changeShipPosition(this.shipIndex, undefined);
       }
       this.drawCanvas(this.ctx, this.canvasShipsData);
       this.shipIndex = null;
@@ -195,12 +190,7 @@ class PlacementGrid extends React.Component {
         x: ox - oy + y,
         y: oy - ox + x,
       };
-      /*TODO: итак... избавляться от мутаций или нет?
-      плюсы: предсказуемое поведение, "чистый" код
-      минусы: сожрет больше вычислительных ресурсов, вероятно, код будет длиннее, 
-      т.к. везде придется писать что-то типа того, что ниже
-      п.с. я не вижу особого смысла)
-      */
+
       this.canvasShipsData[this.shipIndex] = this.canvasShip;
 
       this.drawCanvas(this.ctx, this.canvasShipsData);

@@ -1,6 +1,7 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+
+import PropTypes from 'prop-types';
 
 import {
   recalculateShipsData,
@@ -15,14 +16,12 @@ import {
 import phrases from '../../api/phrases';
 
 import {
-  REQUEST_GAME_ROOM,
   RECEIVE_GAME_ROOM,
   FIND_ROOM,
 } from '../../../common/socketEvents';
 
 import PlacementGrid from '../../components/placement-grid';
 import NewGameCreator from '../../components/new-game-creator';
-import GameInfo from '../../containers/game-info';
 
 import './style.css';
 
@@ -34,7 +33,6 @@ class Lobby extends React.Component {
     const { socket, history, setInfo } = this.props;
     setInfo(phrases.init);
     socket.on(RECEIVE_GAME_ROOM, gameRoom => {
-      console.log('fuuu');
       history.push(`/game/${gameRoom}`);
     });
   }
@@ -81,7 +79,6 @@ class Lobby extends React.Component {
   }
 }
 
-// TODO: проптайпс где?
 
 const mapStateToProps = ({ shipsPlacement }) => ({
   shipsPlacement,

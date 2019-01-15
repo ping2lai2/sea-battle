@@ -1,9 +1,6 @@
 const {
-  REQUEST_GAME_ROOM,
   RECEIVE_GAME_ROOM,
-  DISABLE_GAME,
   JOIN_GAME,
-  OPPONENT_READY,
   OPPONENT_LEFT,
   CAN_USER_SHOOT,
   SEND_SHOOT,
@@ -18,13 +15,12 @@ const {
   RECEIVE_MESSAGE,
   ALL_PLAYERS_CONNECTED,
   FIND_ROOM,
-  CREATE_ROOM,
 } = require('../common/socketEvents');
 
 const uuidv4 = require('uuid/v4');
 
 const randomOpponentRooms = [];
-const customOpponentRooms = [];
+//const customOpponentRooms = [];
 
 module.exports = function(io) {
   io.on('connection', function(socket) {
@@ -32,10 +28,7 @@ module.exports = function(io) {
 
     function handleFindRoom() {
       let roomID = randomOpponentRooms.shift();
-      console.log(roomID);
       if (roomID) {
-        // randomOpponentRooms[0];
-        //const roomID = randomOpponentRooms.shift();
         socket.emit(RECEIVE_GAME_ROOM, roomID);
       } else {
         roomID = createRoom();
@@ -47,30 +40,22 @@ module.exports = function(io) {
         socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
       });
     }
-    // TODO: нужно запрашивать имя
     function handleJoinGame(roomID) {
       socket.join(roomID);
       const clients = io.sockets.adapter.rooms[roomID];
-      console.log(roomID);
-      console.log(clients.length);
       if (clients.length === 2) {
-        console.log('there');
         io.in(roomID).emit(ALL_PLAYERS_CONNECTED); // получившие эту запись являются игроками
-        // определить кто первый ходит
         const gameRoom = io.sockets.adapter.rooms[roomID];
         const first = Object.keys(gameRoom.sockets)[1 - defineFirst()];
-        console.log(first);
         io.sockets.connected[first].emit(CAN_USER_SHOOT);
       }
     }
     function createRoom() {
       const roomID = uuidv4();
-      // socket.join(roomID);
       socket.emit(RECEIVE_GAME_ROOM, roomID);
       return roomID;
     }
 
-    //на это пока забью
     /*
     
     socket.on(CREATE_CUSTOM_ROOM, handleCreateCustomRoom);
@@ -81,7 +66,6 @@ module.exports = function(io) {
       socket.emit(RECEIVE_CUSTOM_ROOM, roomID); //отправили айдишник в форму и на кнопку
     }
 
-    //TODO: придумать какой-нибудь параметр на клиенте, чтобы не пулять их на сервер при заходе
     function handleJoinCustomRoom(roomID) { //зашли с кнопки при создании
       socket.join(roomID);
       socket.emit(RECEIVE_GAME_ROOM, roomID);
@@ -89,25 +73,19 @@ module.exports = function(io) {
     }
 */
 
-    console.log('connected');
-    //socket.on(REQUEST_GAME_ROOM, handleRequestGameRoom); //делаем комнату, конектимся к игре,
-    socket.on(JOIN_GAME, handleJoinGame); // присоединились к игре
-    //socket.on(USER_READY, handleUserReady); //check
 
+    socket.on(JOIN_GAME, handleJoinGame);
     socket.on(SEND_SHOOT, handleSendShoot);
     socket.on(SEND_SHOOT_FEEDBACK, handleSendShootFeedback);
     socket.on(SEND_DESTROYED_SHIP, handleSendDestroyedShip);
     socket.on(OPPONENT_HAS_WON, handleOpponentWinning);
+    socket.on(SEND_MESSAGE, handleReceiveMessage);
 
     function handleOpponentWinning(payload) {
-      console.log(payload);
-      console.log('yeeeeeee');
-      //TODO придется ещё socket.id везде ложить
       socket.broadcast.to(payload.roomID).emit(USER_HAS_WON);
     }
 
     function handleSendDestroyedShip(payload) {
-      console.log(payload);
       socket.broadcast.to(payload.roomID).emit(RECEIVE_DESTROYED_SHIP, {
         index: payload.index,
         ship: payload.ship,
@@ -115,7 +93,6 @@ module.exports = function(io) {
     }
 
     function handleSendShootFeedback(payload) {
-      console.log(payload);
       socket.broadcast.to(payload.roomID).emit(RECEIVE_SHOOT_FEEDBACK, {
         cell: payload.cell,
         hit: payload.hit,
@@ -123,23 +100,17 @@ module.exports = function(io) {
     }
 
     function handleSendShoot(payload) {
-      console.log(payload);
       socket.broadcast.to(payload.roomID).emit(RECEIVE_SHOOT, payload.cell);
     }
-
-    //ищем пустую комнату, если не находим, то делаем новую
-
-    /*//its works
-      console.log(socket.id);
-      console.log(io.sockets.connected);
-      */
+    function handleReceiveMessage(payload) {
+      socket.broadcast.to(payload.gameId).emit(RECEIVE_MESSAGE, {
+        name: payload.name,
+        text: payload.text,
+      });
+    }
 
     function defineFirst() {
       return Math.floor(Math.random() * 2);
-    }
-
-    function handleUserReady(roomID) {
-      socket.broadcast.to(roomID).emit(OPPONENT_READY);
     }
   });
 };

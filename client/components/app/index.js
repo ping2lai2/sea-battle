@@ -11,7 +11,6 @@ import './style.css';
 
 const socket = io('http://localhost:3333');
 
-// TODO: поглядеть, что пробрасываешь
 class App extends React.Component {
   render() {
     return (
@@ -21,12 +20,12 @@ class App extends React.Component {
           <Route
             exact
             path="/"
-            component={() => <Lobby socket={socket} {...this.props} />}
+            render={(props) => <Lobby socket={socket} {...props} />}
           />
           <Route
             path="/game/:roomID"
-            component={match => (
-              <Game socket={socket} {...match} {...this.props} />
+            render={(props, match) => (
+              <Game socket={socket} {...match} {...props} />
             )}
           />
         </Switch>

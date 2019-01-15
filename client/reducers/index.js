@@ -7,6 +7,7 @@ import { canShootReducer } from './canShootReducer';
 import { timerReducer } from './timerReducer';
 import { gameInfoReducer } from './gameInfoReducer';
 import { winnerStatusReducer } from './winnerStatusReducer';
+import { gameStatusReducer } from './gameStatusReducer';
 
 export const rootReducer = history =>
   combineReducers({
@@ -17,5 +18,6 @@ export const rootReducer = history =>
     timer: timerReducer,
     gameInfo: gameInfoReducer,
     winnerStatus: winnerStatusReducer,
+    gameStatus: gameStatusReducer,
     router: connectRouter(history),
   });

@@ -7,6 +7,8 @@ export const RECALCULATE_SHIPS_DATA = 'RECALCULATE_SHIPS_DATA';
 /********************************************************/
 
 export const CAN_USER_SHOOT = 'CAN_USER_SHOOT';
+export const RUN_GAME = 'RUN_GAME';
+export const DISABLE_GAME = 'DISABLE_GAME';
 export const DETERMINE_WINNER = 'DETERMINE_WINNER';
 
 export const CREATE_USER_DATA = 'CREATE_USER_DATA';
@@ -22,7 +24,8 @@ export const DECREMENT_TIMER = 'DECREMENT_TIMER';
 export const RESTORE_INITIAL_TIMER = 'RESTORE_INITIAL_TIMER';
 
 export const SET_INFO = 'SET_INFO';
-//TODO: ВЕРНИ ПЭЙЛОАД
+export const SET_NAME = 'SET_NAME';
+export const ADD_MESSAGE = 'ADD_MESSAGE';
 
 /*_________________ LOBBY ACTIONS______________________ */
 
@@ -53,6 +56,14 @@ export const recalculateShipsData = (ships, busyCellsMatrix) => ({
 });
 
 /*_________________ GAME ACTIONS_______________________ */
+
+export const runGame = () => ({
+  type: RUN_GAME,
+});
+
+export const disableGame = () => ({
+  type: DISABLE_GAME,
+});
 
 export const createUserData = (ships, busyCellsMatrix) => ({
   type: CREATE_USER_DATA,
@@ -117,19 +128,27 @@ export const restoreInitialTimer = () => ({
   type: RESTORE_INITIAL_TIMER,
 });
 
-/*
-export const decrementTimerWithCheck = time => dispatch => {
-  if (time !== 0) {
-    dispatch(decrementTimer());
-  } else {
-    dispatch(determineWinner(false));
-  }
-};
-*/
-
 /*_________________ GAME INFO ACTIONS__________________ */
 
 export const setInfo = phrase => ({
   type: SET_INFO,
   phrase,
 });
+
+/*_________________ MESSAGE ACTIONS__________________ */
+
+export const addMessage = (name, text) => ({
+  type: ADD_MESSAGE,
+  name,
+  text,
+});
+
+export const setName = name => ({
+  type: SET_NAME,
+  name,
+});
+
+
+
+
+

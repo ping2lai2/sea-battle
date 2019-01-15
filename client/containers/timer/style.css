@@ -1,6 +1,13 @@
-.time {
+.timer {
+  align-items: center;
+  text-decoration: inherit;
+  color: #444;
   display: flex;
-  font-size: 24px;
-  width: 100%;
+  width: 120px;
+  height: 100%;
+  background: #fff;
   justify-content: center;
+  border-radius: 2px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
 }
+

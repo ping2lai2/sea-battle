@@ -10,17 +10,37 @@
     background: #eee;
   }
 }
-.type-checkers {
-  display: flex;
-}
+
 .new-game-creator {
   border-radius: 4px;
   margin: 0 10px;
-  flex: 0 1;
   background: #fff;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  padding: 30px 10px;
+  box-sizing: border-box;
+  width: 240px;
 }
 .user-name {
   padding: 5px;
   font-size: 16px;
+   width: 100%;
+}
+
+.run-game-button {
+  user-select: none;
+  border-radius: 2px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+  display: flex;
+  padding: 0 10px;
+  margin: 10px 0;
+  height: 30px;
+  background: #fff;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  word-wrap: break-word;
+  &:hover {
+    background: #f5f5f5;
+  }
 }

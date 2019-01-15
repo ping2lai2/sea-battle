@@ -7,6 +7,9 @@
   border-radius: 4px;
   background: #fff;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  >canvas {
+    outline: none;
+  }
 }
 .generate-ships-position {
 display: flex;
@@ -14,6 +17,7 @@ justify-content: center;
 padding: 5px 0;
 }
 .generate-ships-position__item {
+  user-select: none;
   border-radius: 2px;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
   box-sizing: border-box;

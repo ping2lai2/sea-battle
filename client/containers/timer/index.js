@@ -1,10 +1,15 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-
-import { decrementTimer, determineWinner, setInfo } from '../../actions';
-
+import {
+  decrementTimer,
+  determineWinner,
+  setInfo,
+  disableGame,
+} from '../../actions';
 import phrases from '../../api/phrases';
+
+import { OPPONENT_HAS_WON } from '../../../common/socketEvents';
 
 import './style.css';
 
@@ -13,18 +18,36 @@ class Timer extends React.PureComponent {
     super(props);
     this.timer = null;
   }
-
   componentDidMount() {
+
+
     const decrementTimerWrap = () => {
-      const { decrementTimer, timer, determineWinner, setInfo } = this.props;
-      if (timer === 0) {
-        setInfo(phrases.loose);
-        determineWinner(false);
+      const {
+        socket,
+        canShoot,
+        timer,
+        roomID,
+        disableGame,
+        determineWinner,
+        decrementTimer,
+        winnerStatus,
+      } = this.props;
+      if (timer == 0) {
         clearInterval(this.timer);
+        if (canShoot) {
+          this.props.setInfo(phrases.loose);
+          socket.emit(OPPONENT_HAS_WON, roomID);
+          determineWinner(false);
+        }
+        disableGame();
       } else {
         decrementTimer(timer);
       }
+      if (winnerStatus !== null) {
+        clearInterval(this.timer);
+      }
     };
+
     this.timer = setInterval(decrementTimerWrap, 1000);
   }
   componentWillUnmount() {
@@ -32,17 +55,22 @@ class Timer extends React.PureComponent {
   }
 
   render() {
-    const { timer } = this.props;
-    return <div className="time">{timer}</div>;
+    return <div className="timer">{this.props.timer}</div>;
   }
 }
-
-const mapStateToProps = ({ timer }) => timer;
+const mapStateToProps = ({ timer, winnerStatus, canShoot, gameStatus }) => ({
+  ...timer,
+  canShoot,
+  winnerStatus,
+  gameStatus,
+});
 
 const mapDispatchToProps = dispatch => ({
   decrementTimer: time => dispatch(decrementTimer(time)),
+
   setInfo: bool => dispatch(setInfo(bool)),
   determineWinner: time => dispatch(determineWinner(time)),
+  disableGame: () => dispatch(disableGame()),
 });
 
 Timer.propTypes = {
@@ -50,6 +78,12 @@ Timer.propTypes = {
   determineWinner: PropTypes.func.isRequired,
   setInfo: PropTypes.func.isRequired,
   timer: PropTypes.number.isRequired,
+  canShoot: PropTypes.bool.isRequired,
+  socket: PropTypes.object.isRequired,
+  roomID: PropTypes.string.isRequired,
+  winnerStatus: PropTypes.bool,
+  restoreInitialTimer: PropTypes.func.isRequired,
+  disableGame: PropTypes.func.isRequired,
 };
 
 export default connect(

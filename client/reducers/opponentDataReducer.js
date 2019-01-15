@@ -15,7 +15,7 @@ export const opponentDataReducer = (state = initialState, action) => {
     return {
       ...state,
       ships: [...initialState.ships],
-      busyCellsMatrix: [...initialState.busyCellsMatrix],
+      busyCellsMatrix: initialState.busyCellsMatrix.map(row => [...row]),
     };
   }
   case PUT_CELL_TO_OPPONENT_DATA: {

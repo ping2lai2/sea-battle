@@ -15,8 +15,8 @@ export const userDataReducer = (state = initialState, action) => {
   case CREATE_USER_DATA: {
     return {
       ...state,
-      ships: action.ships,
-      busyCellsMatrix: action.busyCellsMatrix,
+      ships: action.ships.map(ship => ({ ...ship })),
+      busyCellsMatrix: action.busyCellsMatrix.map(row => [...row]),
     };
   }
   case PUT_CELL_TO_USER_DATA: {

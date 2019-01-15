@@ -1,19 +1,16 @@
 import React from 'react';
 
+import PropTypes from 'prop-types';
+
 import {
   drawGrid,
   drawShips,
   createCanvasData,
-  createDataForShip,
   drawShipsMap,
   drawMatrixState,
-  getCanvasCellCoordinate,
-  drawShootAccessFrame,
 } from '../../api/canvasLogic';
 
 import { hardClone } from '../../api/mainLogic';
-
-//TODO: нужно в хок скрутить, они идентичны практически по функционалу
 
 import './style.css';
 
@@ -21,22 +18,21 @@ class UserGrid extends React.Component {
   constructor(props) {
     super(props);
     this.canvas = React.createRef();
-    //TODO проще прокинуть в пропсы
     this.canvasWidth = 520;
     this.canvasHeight = 400;
     this.ctx = null;
     this.canvasShipsData = [];
   }
   componentDidMount() {
-    const {ships, busyCellsMatrix} = this.props;
+    const { ships, busyCellsMatrix } = this.props;
     this.canvas.current.width = this.canvasWidth;
     this.canvas.current.height = this.canvasHeight;
     this.ctx = this.canvas.current.getContext('2d');
     this.canvasShipsData = hardClone(createCanvasData(ships));
-    this.drawCanvas(this.ctx, this.canvasShipsData,busyCellsMatrix);
+    this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
   }
   componentDidUpdate() {
-    const {ships, busyCellsMatrix} = this.props;
+    const { ships, busyCellsMatrix } = this.props;
     this.canvasShipsData = hardClone(createCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
   }
@@ -47,14 +43,18 @@ class UserGrid extends React.Component {
     drawMatrixState(ctx, busyCellsMatrix, true);
     drawShipsMap(ctx, ships);
   };
-  //TODO: прокидываю width={this.width} а ещё есть this.canvas.current.widt this.canvasWidth, что хотел - хз
   render() {
     return (
       <div className="grid">
-        <canvas ref={this.canvas} width={this.width} height={this.height} />
+        <canvas ref={this.canvas} />
       </div>
     );
   }
 }
+
+UserGrid.propTypes = {
+  ships: PropTypes.array.isRequired,
+  busyCellsMatrix: PropTypes.array.isRequired,
+};
 
 export default UserGrid;

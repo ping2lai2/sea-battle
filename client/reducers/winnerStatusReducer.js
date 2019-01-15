@@ -1,6 +1,9 @@
 import { DETERMINE_WINNER } from '../actions';
 
-export const winnerStatusReducer = (state = null, action) => {
+const initialState = null;
+
+
+export const winnerStatusReducer = (state = initialState, action) => {
   switch (action.type) {
   case DETERMINE_WINNER: {
     return action.bool;
@@ -10,4 +13,3 @@ export const winnerStatusReducer = (state = null, action) => {
   }
   }
 };
-
