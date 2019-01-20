@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   drawGrid,
   drawShips,
-  createCanvasData,
+  createOpponentCanvasData,
   drawMatrixState,
   drawShipsMap,
   drawShootAccessFrame,
@@ -30,13 +30,13 @@ class OpponentGrid extends React.Component {
     this.canvas.current.width = this.canvasWidth;
     this.canvas.current.height = this.canvasHeight;
     this.ctx = this.canvas.current.getContext('2d');
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createOpponentCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
   }
 
   componentDidUpdate() {
     const { ships, busyCellsMatrix } = this.props;
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createOpponentCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
     //console.log(this.canvasShipsdata);
   }
@@ -63,7 +63,7 @@ class OpponentGrid extends React.Component {
     const mx = parseInt(e.nativeEvent.offsetX);
     const my = parseInt(e.nativeEvent.offsetY);
 
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createOpponentCanvasData(ships));
 
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
     drawShootAccessFrame(this.ctx, mx, my);

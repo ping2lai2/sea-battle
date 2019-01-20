@@ -7,7 +7,7 @@ import {
 } from '../actions';
 
 const initialState = {
-  ships: Array(10),
+  ships: Array(10).fill(undefined),
   busyCellsMatrix: Array.from(Array(10), () => Array(10).fill(0)),
 };
 
@@ -51,7 +51,7 @@ export const shipsPlacementReducer = (state = initialState, action) => {
   }
   case CLEAR_SHIPS_DATA: {
     return {
-      ships: Array(10),
+      ships: Array(10).fill(undefined),
       busyCellsMatrix: Array.from(Array(10), () => Array(10).fill(0)),
     };
   }

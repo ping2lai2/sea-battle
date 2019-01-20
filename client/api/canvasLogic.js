@@ -63,27 +63,34 @@ export const generateShipsMapData = (ships = [4, 3, 2, 1]) => {
 };
 export const shipsMapData = generateShipsMapData();
 
-export const createCanvasData = ships => {
-  return ships.map(ship => {
-    if (ship === undefined || ship === null) {
-      return undefined;
-    }
-    const length = ship.coordinates.length - 1;
-    const coordinates = ship.coordinates;
-    const x0 = coordinates[0].x,
-      y0 = coordinates[0].y;
-    const canvasX0 = x0 * fullCellSize + offsetLeft,
-      canvasY0 = y0 * fullCellSize + offsetTop;
+const createCanvasShip = ship => {
+  const length = ship.coordinates.length - 1;
+  const coordinates = ship.coordinates;
+  const x0 = coordinates[0].x,
+    y0 = coordinates[0].y;
+  const canvasX0 = x0 * fullCellSize + offsetLeft,
+    canvasY0 = y0 * fullCellSize + offsetTop;
 
-    return {
-      x: canvasX0,
-      y: canvasY0,
-      width: (coordinates[length].x - x0 + 1) * fullCellSize,
-      height: (coordinates[length].y - y0 + 1) * fullCellSize,
-      isDestroyed: ship.isDestroyed,
-    };
-  });
+  return {
+    x: canvasX0,
+    y: canvasY0,
+    width: (coordinates[length].x - x0 + 1) * fullCellSize,
+    height: (coordinates[length].y - y0 + 1) * fullCellSize,
+    isDestroyed: ship.isDestroyed,
+  };
 };
+
+export const createCanvasData = ships =>
+  ships.map((ship, index) =>
+    ship === undefined || ship === null
+      ? abroadShips[index]
+      : createCanvasShip(ship)
+  );
+
+export const createOpponentCanvasData = ships =>
+  ships.map(ship =>
+    ship === undefined || ship === null ? false : createCanvasShip(ship)
+  );
 
 export const restoreToCellsType = ship => {
   const restoredShip = getRoundedCellCoordinate(ship);

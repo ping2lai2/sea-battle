@@ -7,6 +7,7 @@ export const RECALCULATE_SHIPS_DATA = 'RECALCULATE_SHIPS_DATA';
 /********************************************************/
 
 export const CAN_USER_SHOOT = 'CAN_USER_SHOOT';
+
 export const RUN_GAME = 'RUN_GAME';
 export const DISABLE_GAME = 'DISABLE_GAME';
 

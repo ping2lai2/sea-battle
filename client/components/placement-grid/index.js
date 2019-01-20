@@ -35,11 +35,14 @@ class PlacementGrid extends React.Component {
     this.canvas.current.height = 400;
     this.ctx = this.canvas.current.getContext('2d');
     const { ships } = this.props;
+    /*
     if (ships.includes(undefined) || ships.includes(null)) {
       this.canvasShipsData = hardClone(abroadShips);
     } else {
       this.canvasShipsData = hardClone(createCanvasData(ships));
     }
+    */
+    this.canvasShipsData = hardClone(createCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData);
   }
 
@@ -107,7 +110,7 @@ class PlacementGrid extends React.Component {
       changeShipPosition,
       addToBusyCells,
     } = this.props;
-    
+
     if (this.shipIndex !== null) {
       // мы на сетке?
       if (isShipOnGrid(this.canvasShip)) {
