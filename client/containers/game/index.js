@@ -180,7 +180,7 @@ class Game extends React.Component {
   };
 
   handleOpponentLeft = () => {
-    const { setInfo, determineWinner, gameStatus } = this.props;
+    const { setInfo, determineWinner, gameStatus, disableGame } = this.props;
     if (gameStatus) {
       setInfo(phrases.disconnect);
       determineWinner(true);
