@@ -6,6 +6,8 @@ import {
   determineWinner,
   setInfo,
   disableGame,
+  restoreInitialTimer,
+  
 } from '../../actions';
 import phrases from '../../api/phrases';
 
@@ -19,6 +21,7 @@ class Timer extends React.PureComponent {
     this.timer = null;
   }
   componentDidMount() {
+    this.props.restoreInitialTimer();
     const decrementTimerWrap = () => {
       const {
         socket,
@@ -64,7 +67,7 @@ const mapStateToProps = ({ timer, winnerStatus, canShoot }) => ({
 
 const mapDispatchToProps = dispatch => ({
   decrementTimer: time => dispatch(decrementTimer(time)),
-
+  restoreInitialTimer: () => dispatch(restoreInitialTimer()),
   setInfo: bool => dispatch(setInfo(bool)),
   determineWinner: time => dispatch(determineWinner(time)),
   disableGame: () => dispatch(disableGame()),
@@ -80,6 +83,7 @@ Timer.propTypes = {
   roomID: PropTypes.string.isRequired,
   winnerStatus: PropTypes.bool,
   disableGame: PropTypes.func.isRequired,
+  restoreInitialTimer: PropTypes.func.isRequired,
 };
 
 export default connect(

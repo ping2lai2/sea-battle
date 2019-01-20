@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 import PropTypes from 'prop-types';
 
@@ -15,6 +16,7 @@ import {
   determineWinner,
   runGame,
   disableGame,
+  restoreInitialWinner,
 } from '../../actions';
 
 import Chat from '../chat';
@@ -46,7 +48,8 @@ class Game extends React.Component {
     super(props);
   }
   componentDidMount() {
-    const { socket } = this.props;
+    const { socket, restoreInitialWinner } = this.props;
+    restoreInitialWinner();
 
     socket.emit(JOIN_GAME, this.props.match.params.roomID);
 
@@ -194,9 +197,9 @@ class Game extends React.Component {
           {gameStatus ? (
             <Timer socket={socket} roomID={match.params.roomID}  winnerStatus={winnerStatus}/>
           ) : (
-            <a className="return-button" href="/">
+            <Link className="return-button" to="/">
               назад
-            </a>
+            </Link>
           )}
         </div>
         <div className="field">
@@ -220,6 +223,8 @@ const mapDispatchToProps = dispatch => ({
   canUserShoot: bool => dispatch(canUserShoot(bool)),
 
   restoreInitialTimer: () => dispatch(restoreInitialTimer()),
+
+  restoreInitialWinner: () => dispatch(restoreInitialWinner()),
 
   putCellToUserData: cell => dispatch(putCellToUserData(cell)),
   putShipsCellToUserData: (shipIndex, cell) =>

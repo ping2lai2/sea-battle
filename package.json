@@ -47,7 +47,7 @@
     "webpack-merge": "^4.1.5"
   },
   "dependencies": {
-    "connected-react-router": "^6.1.0",
+    "connected-react-router": "^6.2.2",
     "express": "^4.16.4",
     "history": "^4.7.2",
     "prop-types": "^15.6.2",

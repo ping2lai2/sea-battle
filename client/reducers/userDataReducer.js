@@ -15,7 +15,12 @@ export const userDataReducer = (state = initialState, action) => {
   case CREATE_USER_DATA: {
     return {
       ...state,
-      ships: action.ships.map(ship => ({ ...ship })),
+      ships: action.ships.map(ship => ({
+        ...ship,
+        coordinates: ship.coordinates.map(coordinate => ({ ...coordinate })),
+        busyCellsX: [...ship.busyCellsX],
+        busyCellsY: [...ship.busyCellsY],
+      })),
       busyCellsMatrix: action.busyCellsMatrix.map(row => [...row]),
     };
   }

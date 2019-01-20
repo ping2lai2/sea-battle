@@ -9,7 +9,9 @@ export const RECALCULATE_SHIPS_DATA = 'RECALCULATE_SHIPS_DATA';
 export const CAN_USER_SHOOT = 'CAN_USER_SHOOT';
 export const RUN_GAME = 'RUN_GAME';
 export const DISABLE_GAME = 'DISABLE_GAME';
+
 export const DETERMINE_WINNER = 'DETERMINE_WINNER';
+export const RESTORE_INITIAL_WINNER = 'RESTORE_INITIAL_WINNER';
 
 export const CREATE_USER_DATA = 'CREATE_USER_DATA';
 export const CREATE_OPPONENT_DATA = 'CREATE_OPPONENT_DATA';
@@ -113,9 +115,15 @@ export const putShipsCellToUserData = (index, cell) => ({
   cell,
 });
 
+/*_________________ WINNER ACTIONS___________________ */
+
 export const determineWinner = bool => ({
   type: DETERMINE_WINNER,
   bool,
+});
+
+export const restoreInitialWinner = () => ({
+  type: RESTORE_INITIAL_WINNER,
 });
 
 /*_________________ TIMER ACTIONS____________________ */
