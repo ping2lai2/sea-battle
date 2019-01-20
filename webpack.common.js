@@ -6,7 +6,6 @@ module.exports = {
   entry: { main: './client/index.js' }, 
   output: {
     path: path.join(__dirname, '/dist'),
-    publicPath: '/',
     filename: '[name].[chunkhash].js',
     chunkFilename: '[name].bundle.js',
   },
@@ -22,6 +21,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
+        exclude: /node_modules/,
         use: [
           'style-loader',
           MiniCssExtractPlugin.loader,

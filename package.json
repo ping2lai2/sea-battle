@@ -39,7 +39,6 @@
     "stylelint": "^9.9.0",
     "stylelint-config-recommended": "^2.1.0",
     "stylelint-webpack-plugin": "^0.10.5",
-    "terser-webpack-plugin": "^1.2.1",
     "uglifyjs-webpack-plugin": "^2.1.0",
     "url-loader": "^1.1.2",
     "webpack": "^4.28.0",

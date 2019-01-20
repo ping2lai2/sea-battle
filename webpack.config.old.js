@@ -21,12 +21,12 @@ module.exports = {
   output: {
     path: path.join(__dirname, 'dist'),
     filename: '[name].js',
-    publicPath: '/'
+    publicPath: '/',
   },
   devServer: {
     historyApiFallback: true,
     contentBase: './dist',
-    disableHostCheck: true,  
+    disableHostCheck: true,
     port: 3000,
     open: true,
   },

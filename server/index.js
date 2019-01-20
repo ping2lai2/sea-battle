@@ -3,11 +3,9 @@ var io = (module.exports.io = require('socket.io')(app));
 
 const PORT = process.env.PORT || 3333;
 
-//const SocketManager = require('./SocketManager');
-
-//io.on('connection', SocketManager);
 
 app.listen(PORT, () => {
+  // eslint-disable-next-line no-console
   console.log('Connected to port:' + PORT);
 });
 
