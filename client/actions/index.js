@@ -118,10 +118,11 @@ export const putShipsCellToUserData = (index, cell) => ({
 
 /*_________________ WINNER ACTIONS___________________ */
 
-export const determineWinner = bool => ({
-  type: DETERMINE_WINNER,
-  bool,
-});
+export const determineWinner = bool => dispatch => {
+  dispatch({ type: DETERMINE_WINNER, bool });
+  dispatch(disableGame());
+  dispatch(canUserShoot(false));
+};
 
 export const restoreInitialWinner = () => ({
   type: RESTORE_INITIAL_WINNER,
@@ -156,8 +157,3 @@ export const setName = name => ({
   type: SET_NAME,
   name,
 });
-
-
-
-
-

@@ -16,7 +16,6 @@ const enhancers = [];
 const persistConfig = {
   key: 'root',
   storage,
-  blacklist: ['timer', 'winnerStatus'],
 };
 
 
