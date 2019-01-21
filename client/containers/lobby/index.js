@@ -45,7 +45,7 @@ class Lobby extends React.Component {
     ) {
       socket.emit(FIND_ROOM);
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
-      setInfo(phrases.wait);
+      setInfo(phrases.waitOpponent);
     } else {
       setInfo(phrases.notPut);
     }

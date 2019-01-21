@@ -112,11 +112,12 @@ class Game extends React.Component {
     if (canShoot) {
       socket.emit(SEND_SHOOT, { roomID: match.params.roomID, cell });
       canUserShoot(false);
-      setInfo(phrases.opponent);
+      setInfo(phrases.waitSmth);
       restoreInitialTimer();
     }
   };
   //противник получил и обработал
+  //TODO: antida-sea-battle REMOTE!!!
   handleReceiveShoot = cell => {
     const {
       userData,
@@ -178,6 +179,9 @@ class Game extends React.Component {
     if (data.hit) {
       canUserShoot(true);
       setInfo(phrases.user);
+    }
+    else {
+      setInfo(phrases.opponent);
     }
     putCellToOpponentData(data.cell, data.hit);
   };

@@ -2,8 +2,8 @@
   "name": "antidaseabattle",
   "version": "1.0.0",
   "description": "Finished task for antida",
-  "main": "index.js",
   "scripts": {
+    "start": "node server/index.js",
     "dev": "webpack-dev-server --open --config webpack.dev.js --mode development",
     "build": "webpack --config webpack.prod.js --mode production",
     "server": "nodemon server/index.js"
@@ -60,6 +60,7 @@
     "redux-persist": "^5.10.0",
     "redux-thunk": "^2.3.0",
     "socket.io": "^2.2.0",
-    "socket.io-client": "^2.2.0"
+    "socket.io-client": "^2.2.0",
+    "uuid": "^3.3.2"
   }
 }

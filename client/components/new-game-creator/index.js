@@ -6,7 +6,7 @@ import './style.css';
 
 export const NewGameCreator = ({ canRunGame }) => (
   <div className="new-game-creator">
-    <input className="user-name" type="text" placeholder="твоё имя..." />
+    {/*<input className="user-name" type="text" placeholder="твоё имя..." />*/}
     <div className="run-game-button" onClick={canRunGame}>Играть</div>
   </div>
 );

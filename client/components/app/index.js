@@ -9,7 +9,7 @@ import GameInfo from '../../containers/game-info';
 
 import './style.css';
 
-const socket = io('http://localhost:3333');
+const socket = io('/');
 
 class App extends React.Component {
   render() {
