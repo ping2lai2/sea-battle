@@ -16,6 +16,7 @@ export const RESTORE_INITIAL_WINNER = 'RESTORE_INITIAL_WINNER';
 
 export const CREATE_USER_DATA = 'CREATE_USER_DATA';
 export const CREATE_OPPONENT_DATA = 'CREATE_OPPONENT_DATA';
+export const CREATE_RECEIVED_OPPONENT_DATA = 'CREATE_RECEIVED_OPPONENT_DATA';
 
 export const PUT_CELL_TO_OPPONENT_DATA = 'PUT_CELL_TO_OPPONENT_DATA';
 export const PUT_SHIP_TO_OPPONENT_DATA = 'PUT_SHIP_TO_OPPONENT_DATA';
@@ -74,8 +75,15 @@ export const createUserData = (ships, busyCellsMatrix) => ({
   busyCellsMatrix,
 });
 
-export const createOpponentData = () => ({
+export const createOpponentData = (name='A') => ({
   type: CREATE_OPPONENT_DATA,
+  name
+});
+export const createReceivedOpponentData = (ships, busyCellsMatrix, name='A') => ({
+  type: CREATE_RECEIVED_OPPONENT_DATA,
+  ships,
+  busyCellsMatrix,
+  name
 });
 
 export const createGameData = (ships, busyCellsMatrix) => dispatch => {
@@ -93,10 +101,11 @@ export const putCellToUserData = cell => ({
   cell,
 });
 
-export const putCellToOpponentData = (cell, hit) => ({
+export const putCellToOpponentData = (cell, hit, name='A') => ({
   type: PUT_CELL_TO_OPPONENT_DATA,
   cell,
   hit,
+  name
 });
 
 export const putShipToUserData = ship => ({
@@ -104,10 +113,11 @@ export const putShipToUserData = ship => ({
   ship,
 });
 
-export const putShipToOpponentData = (index, ship) => ({
+export const putShipToOpponentData = (index, ship, name='A') => ({
   type: PUT_SHIP_TO_OPPONENT_DATA,
   index,
   ship,
+  name
 });
 
 export const putShipsCellToUserData = (index, cell) => ({

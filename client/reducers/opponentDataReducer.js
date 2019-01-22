@@ -2,6 +2,7 @@ import {
   CREATE_OPPONENT_DATA,
   PUT_CELL_TO_OPPONENT_DATA,
   PUT_SHIP_TO_OPPONENT_DATA,
+  CREATE_RECEIVED_OPPONENT_DATA,
 } from '../actions';
 
 const initialState = {
@@ -18,13 +19,33 @@ export const opponentDataReducer = (state = initialState, action) => {
       busyCellsMatrix: initialState.busyCellsMatrix.map(row => [...row]),
     };
   }
+  case CREATE_RECEIVED_OPPONENT_DATA: {
+    return {
+      ...state,
+      ships: action.ships.map(ship => {
+        if (ship) {
+          return {
+            ...ship,
+            coordinates: ship.coordinates.map(coordinate => ({
+              ...coordinate,
+            })),
+            busyCellsX: [...ship.busyCellsX],
+            busyCellsY: [...ship.busyCellsY],
+          };
+        } else {
+          return ship;
+        }
+      }),
+      busyCellsMatrix: action.busyCellsMatrix.map(row => [...row]),
+    };
+  }
   case PUT_CELL_TO_OPPONENT_DATA: {
     return {
       ...state,
       busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
         row.map((cell, j) => {
           if (action.cell.x === i && action.cell.y === j) {
-            cell = action.hit ? 7 : 6;
+            cell = action.hit ? 8 : 6;
           }
           return cell;
         })
@@ -53,7 +74,7 @@ export const opponentDataReducer = (state = initialState, action) => {
               j >= busyY[0] &&
               j <= busyY[1]
           ) {
-            cell = cell === 0 ? 1 : cell;
+            cell = cell === 0 ? 7 : cell;
           }
           if (
             i >= coordsMin.x &&
@@ -61,7 +82,7 @@ export const opponentDataReducer = (state = initialState, action) => {
               j >= coordsMin.y &&
               j <= coordsMax.y
           ) {
-            cell = 7;
+            cell = 8;
           }
           return cell;
         })

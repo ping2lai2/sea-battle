@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {
   drawGrid,
   drawShips,
-  createCanvasData,
+  createGameCanvasData,
   drawShipsMap,
   drawMatrixState,
 } from '../../api/canvasLogic';
@@ -28,19 +28,19 @@ class UserGrid extends React.Component {
     this.canvas.current.width = this.canvasWidth;
     this.canvas.current.height = this.canvasHeight;
     this.ctx = this.canvas.current.getContext('2d');
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createGameCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
   }
   componentDidUpdate() {
     const { ships, busyCellsMatrix } = this.props;
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createGameCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData, busyCellsMatrix);
   }
   drawCanvas = (ctx, ships, busyCellsMatrix) => {
     ctx.clearRect(0, 0, this.canvas.current.width, this.canvas.current.height);
     drawGrid(ctx);
     drawShips(ctx, ships);
-    drawMatrixState(ctx, busyCellsMatrix, true);
+    drawMatrixState(ctx, busyCellsMatrix);
     drawShipsMap(ctx, ships);
   };
   render() {

@@ -30,7 +30,7 @@ export const userDataReducer = (state = initialState, action) => {
       busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
         row.map((cell, j) => {
           if (action.cell.x === i && action.cell.y === j) {
-            cell = cell === 5 ? 7 : 6;
+            cell = cell === 5 ? 8 : 6;
           }
           return cell;
         })
@@ -38,25 +38,75 @@ export const userDataReducer = (state = initialState, action) => {
     };
   }
   case PUT_SHIPS_CELL_TO_USER_DATA: {
-    return {
-      ...state,
-      ships: state.ships.map((ship, index) => {
-        if (index === action.index) {
-          let shipIsDestroyed = true;
-          ship.coordinates.map(coord => {
-            if (coord.x === action.cell.x && coord.y === action.cell.y) {
-              coord.isDestroyed = true;
-            }
-            if (coord.isDestroyed === false) {
-              shipIsDestroyed = false;
-            }
-            return coord;
-          });
-          ship.isDestroyed = shipIsDestroyed;
+
+    const ships = [...state.ships];
+    let shipIsDestroyed = true;
+    const currentShip = state.ships[action.index];
+    const returnedShip = {
+      ...currentShip,
+      coordinates: currentShip.coordinates.map(coord => {
+        if (coord.x === action.cell.x && coord.y === action.cell.y) {
+          coord = { ...coord, isDestroyed: true };
         }
-        return ship;
+        if (coord.isDestroyed === false) {
+          shipIsDestroyed = false;
+        }
+        return coord;
       }),
     };
+
+    if (shipIsDestroyed) {
+      const busyX = returnedShip.busyCellsX;
+      const busyY = returnedShip.busyCellsY;
+
+      return {
+        ...state,
+        ships: [
+          ...ships.slice(0, action.index),
+
+          {
+            ...returnedShip,
+            coordinates: returnedShip.coordinates.map(coordinate => ({
+              ...coordinate,
+            })),
+            busyCellsX: [...returnedShip.busyCellsX],
+            busyCellsY: [...returnedShip.busyCellsY],
+            isDestroyed: shipIsDestroyed,
+          },
+          ...ships.slice(action.index + 1),
+        ],
+        busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
+          row.map((cell, j) => {
+            if (
+              i >= busyX[0] &&
+                i <= busyX[1] &&
+                j >= busyY[0] &&
+                j <= busyY[1]
+            ) {
+              cell = cell <= 4 ? 7 : cell;
+            }
+            return cell;
+          })
+        ),
+      };
+    } else {
+      return {
+        ...state,
+        ships: [
+          ...ships.slice(0, action.index),
+          {
+            ...returnedShip,
+            coordinates: returnedShip.coordinates.map(coordinate => ({
+              ...coordinate,
+            })),
+            busyCellsX: [...returnedShip.busyCellsX],
+            busyCellsY: [...returnedShip.busyCellsY],
+            isDestroyed: shipIsDestroyed,
+          },
+          ...ships.slice(action.index + 1),
+        ],
+      };
+    }
   }
   case PUT_SHIP_TO_USER_DATA: {
     return {

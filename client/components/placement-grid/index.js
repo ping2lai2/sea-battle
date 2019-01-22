@@ -11,7 +11,7 @@ import {
   drawGrid,
   drawShips,
   isShipOnGrid,
-  createCanvasData,
+  createPlacementCanvasData,
   canPutShipInCell,
   drawAccessFrame,
   restoreCellCoordinate,
@@ -39,10 +39,10 @@ class PlacementGrid extends React.Component {
     if (ships.includes(undefined) || ships.includes(null)) {
       this.canvasShipsData = hardClone(abroadShips);
     } else {
-      this.canvasShipsData = hardClone(createCanvasData(ships));
+      this.canvasShipsData = hardClone(createPlacementCanvasData(ships));
     }
     */
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createPlacementCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData);
   }
 
@@ -54,7 +54,7 @@ class PlacementGrid extends React.Component {
   randomGenerate = () => {
     const { ships, busyCellsMatrix } = generateRandomShipsCoordinates();
     this.props.recalculateShipsData(ships, busyCellsMatrix);
-    this.canvasShipsData = hardClone(createCanvasData(ships));
+    this.canvasShipsData = hardClone(createPlacementCanvasData(ships));
     this.drawCanvas(this.ctx, this.canvasShipsData);
   };
   clearGrid = () => {

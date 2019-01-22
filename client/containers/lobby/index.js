@@ -33,7 +33,7 @@ class Lobby extends React.Component {
     const { socket, history, setInfo } = this.props;
     setInfo(phrases.init);
     socket.on(RECEIVE_GAME_ROOM, gameRoom => {
-      history.push(`/game/${gameRoom}`);
+      history.push(`/${gameRoom}`);
     });
   }
 
@@ -44,6 +44,7 @@ class Lobby extends React.Component {
       !shipsPlacement.ships.includes(null) //&& !shipsPlacement.ships.includes(null)
     ) {
       socket.emit(FIND_ROOM);
+      //TODO: opponentData должна создаваться непосредственно в игре, иначе из-за персиста получаем смесь
       createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
       setInfo(phrases.waitOpponent);
     } else {

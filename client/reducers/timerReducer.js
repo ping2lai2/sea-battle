@@ -1,7 +1,7 @@
 import { DECREMENT_TIMER, RESTORE_INITIAL_TIMER } from '../actions';
 
 const initialState = {
-  timer: 10,
+  timer: 30,
 };
 
 export const timerReducer = (state = initialState, action) => {

@@ -8,5 +8,6 @@ export default {
   disconnect: 'противник вышел, победа за вами',
   win: 'победа',
   loose: 'поражение',
-  waitSmth: '...'
+  waitSmth: '...',
+  screen: 'наблюдение'
 };

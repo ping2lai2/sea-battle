@@ -16,6 +16,7 @@ import {
   determineWinner,
   runGame,
   restoreInitialWinner,
+  disableGame,
 } from '../../actions';
 
 import Chat from '../chat';
@@ -40,6 +41,8 @@ import {
   RECEIVE_SHOOT_FEEDBACK,
   USER_HAS_WON,
   OPPONENT_HAS_WON,
+  GET_GAME_DATA,
+  POST_GAME_DATA,
 } from '../../../common/socketEvents';
 
 class Game extends React.Component {
@@ -47,20 +50,39 @@ class Game extends React.Component {
     super(props);
   }
   componentDidMount() {
-    const { socket, restoreInitialWinner } = this.props;
+    const { socket, restoreInitialWinner, match, disableGame } = this.props;
     restoreInitialWinner();
-
-    socket.emit(JOIN_GAME, this.props.match.params.roomID);
-    /*TODO: сообщаем о присоединении к комнате (JOIN_GAME не подходит, нужно что-то типа GET_GAME_ROLE),
-    получаем идентификатор о том, кто мы,
-    если игрок, то котейнер game с подписками на возможность выстрелить и (JOIN_GAME), если нет, то
-    только на получение данных (предполагается, что игроки уже в игре), т.е. у нас должно быть 2 хока 
-    (контейнер game и компонента grid).
+    disableGame();
+    /*TODO: 
     Игроки должны прокидывать не просто результаты с координаты, а ВСЁ поле и ВЕСЬ список
     подбитых кораблей (тем самым мы позволим зрителям иметь полный актуальный список данных, даже 
     если они зашли позже начала игры), т.е. нам надо всё перестроить: противнику и зрителю отправляется 
     отфильтрованная userData с его промахами и попаданиями и userList с уничтоженными кораблями,
     в редьюсере собирается корректная сетка (сейчас отправляется СТРОГО ТОЧКА ИЛИ СТРОГО КОРАБЛЬ)
+
+    UPDATE: сохраняю прокидку с точкой и кораблем, на хероку всё жестко тормозит, лучше меньше данных
+    зрители при заходе в игру трясут данные с игроков
+    
+    сообщаем о присоединении к комнате (JOIN_GAME не подходит, нужно что-то типа GET_GAME_ROLE),
+    получаем идентификатор о том, кто мы,
+    если игрок, то котейнер game с подписками на возможность выстрелить и (JOIN_GAME), если нет, то
+    только на получение данных (предполагается, что игроки уже в игре), т.е. у нас должно быть 2 хока 
+    (контейнер game и компонента grid).
+
+    игроки бросаются данными с идентификаторами сокетов, зрители хранят айдишники в стейте и как-то должны
+    связывать их с данными стора, предполагаю, что можно при заходе зрителя бросать эмит, чтобы игроки сказали
+    свои идентификаторы, кто первый пришлет, тот получает... в оообщем, сделай ещё хор для оппонентДата
+    https://github.com/reduxjs/redux/blob/e7097be3edcc2ba76cbb6d3aea77e63be2d7e80c/docs/recipes/structuring-reducers/ReusingReducerLogic.md
+    
+    UPDATE: зачем мне засорять стор данными, которые нужны строго в одном месте и вполне определенных чайлдах, при анмаунте их хранить
+    нахер не сдалось, в общем, стэйт в помощь НО!!! придется дублировать логику из редьюсера в стэйте, вот такая вот фигня, странный зверёк получается
+
+    UPDATE2: с моими загонами я никогда не закончу этот проект
+    https://stackoverflow.com/questions/32968016/how-to-dynamically-load-reducers-for-code-splitting-in-a-redux-application
+    https://medium.com/@mange_vibration/reducer-composition-with-higher-order-reducers-35c3977ed08f
+    
+     UPDATE3: HOR на opponentDataReducer
+
     */
     /*
     так же нам придется прокидывать идентификатор сокета и прицепить его к конкретной сетке (при этом
@@ -70,12 +92,16 @@ class Game extends React.Component {
     при этом надо помнить, что 1 сокет может быть в разных комнатах,
     */
     socket.on(ALL_PLAYERS_CONNECTED, this.allPlayersConnected);
-    socket.on(OPPONENT_LEFT, this.handleOpponentLeft); 
+    socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
     socket.on(CAN_USER_SHOOT, this.handleCanUserShoot);
     socket.on(RECEIVE_SHOOT, this.handleReceiveShoot);
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
     socket.on(USER_HAS_WON, this.handleUserHasWon);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
+    socket.on(GET_GAME_DATA, this.handleGetGameData);
+    //TODO: при выходе, перезагрузке и прочем, можно на джоин что-нибудь кидать для проверки, мертва комната или нет
+    //вообще получилась какая-то каша
+    socket.emit(JOIN_GAME, match.params.roomID);
   }
   componentWillUnmount() {
     const { socket } = this.props;
@@ -112,7 +138,7 @@ class Game extends React.Component {
     if (canShoot) {
       socket.emit(SEND_SHOOT, { roomID: match.params.roomID, cell });
       canUserShoot(false);
-      setInfo(phrases.waitSmth);
+      //setInfo(phrases.waitSmth);
       restoreInitialTimer();
     }
   };
@@ -140,14 +166,14 @@ class Game extends React.Component {
         });
       });
       putShipsCellToUserData(shipIndex, cell);
-
-      if (userData.ships[shipIndex].isDestroyed) {
+      const newUserData = this.props.userData; //ох, какой ужс, а есть другое решение
+      if (newUserData.ships[shipIndex].isDestroyed) {
         socket.emit(SEND_DESTROYED_SHIP, {
           index: shipIndex,
-          ship: userData.ships[shipIndex],
+          ship: newUserData.ships[shipIndex],
           roomID: match.params.roomID,
         });
-        if (!userData.ships.some(ship => ship.isDestroyed === false)) {
+        if (!newUserData.ships.some(ship => ship.isDestroyed === false)) {
           socket.emit(OPPONENT_HAS_WON, { roomID: match.params.roomID });
           determineWinner(false);
           setInfo(phrases.loose);
@@ -170,17 +196,17 @@ class Game extends React.Component {
       canUserShoot(true);
       setInfo(phrases.user);
     }
-    putCellToUserData(cell);
+    putCellToUserData(cell);//TODO: выше
     restoreInitialTimer();
   };
+
   // получили результат выстрела
   handleReceiveShootFeedback = data => {
     const { canUserShoot, putCellToOpponentData, setInfo } = this.props;
     if (data.hit) {
       canUserShoot(true);
       setInfo(phrases.user);
-    }
-    else {
+    } else {
       setInfo(phrases.opponent);
     }
     putCellToOpponentData(data.cell, data.hit);
@@ -197,6 +223,13 @@ class Game extends React.Component {
     setInfo(phrases.win);
     determineWinner(true);
   };
+  handleGetGameData = socketId => {
+    const { opponentData, socket } = this.props;
+    socket.emit(POST_GAME_DATA, {
+      socketId,
+      ...opponentData,
+    });
+  };
   allPlayersConnected = () => {
     const { setInfo, runGame } = this.props;
     setInfo(phrases.opponent);
@@ -204,6 +237,7 @@ class Game extends React.Component {
   };
 
   handleOpponentLeft = () => {
+    //TODO: кидается при релоаде страницы, что не торт, т.е., если произошел релоад, надо засчитывать победу 100%, либо как-то запретить
     const { setInfo, determineWinner, gameStatus } = this.props;
     if (gameStatus) {
       setInfo(phrases.disconnect);
@@ -253,13 +287,13 @@ class Game extends React.Component {
 
 const mapStateToProps = ({
   userData,
-  opponentData,
+  opponentDataA,
   canShoot,
   gameStatus,
   winnerStatus,
 }) => ({
   userData,
-  opponentData,
+  opponentData: opponentDataA,
   canShoot,
   gameStatus,
   winnerStatus,
@@ -286,6 +320,7 @@ const mapDispatchToProps = dispatch => ({
   determineWinner: bool => dispatch(determineWinner(bool)),
 
   runGame: () => dispatch(runGame()),
+  disableGame: () => dispatch(disableGame()),
 });
 
 Game.propTypes = {
@@ -307,3 +342,81 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(Game);
+
+
+/*
+ 
+case PUT_SHIPS_CELL_TO_USER_DATA: {
+    //TODO: здесь мы должны нетолько с кораблями манипуляции проводить
+    // но и запихивать в матрицу точки, которые уже однозначно не будут
+    // содержать корабли
+    const ships = [...state.ships];
+    let shipIsDestroyed = true;
+    const currentShip = {...state.ships[action.index]};
+    const returnedShip = {
+      ...currentShip,
+      coordinates: currentShip.coordinates.map(coord => {
+        if (coord.x === action.cell.x && coord.y === action.cell.y) {
+          coord.isDestroyed = true;
+        }
+        if (coord.isDestroyed === false) {
+          shipIsDestroyed = false;
+        }
+        return {...coord};
+      }),
+    };
+    returnedShip.isDestroyed = shipIsDestroyed;
+    if (shipIsDestroyed) {
+      const busyX = returnedShip.busyCellsX;
+      const busyY = returnedShip.busyCellsY;
+      //const coordsMin = returnedShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
+      //const coordsMax = returnedShip.coordinates[returnedShip.length - 1]; //право-низ (x, y, isDestroyed)
+      return {
+        ...state,
+        ships: [
+          ...ships.slice(0, action.index),
+
+          {
+            ...returnedShip,
+            coordinates: returnedShip.coordinates.map(coordinate => ({
+              ...coordinate,
+            })),
+            busyCellsX: [...returnedShip.busyCellsX],
+            busyCellsY: [...returnedShip.busyCellsY],
+          },
+          ...ships.slice(action.index + 1),
+        ],
+        busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
+          row.map((cell, j) => {
+            if (
+              i >= busyX[0] &&
+                i <= busyX[1] &&
+                j >= busyY[0] &&
+                j <= busyY[1]
+            ) {
+              return (cell = cell <= 4 ? 7 : cell);
+            }
+          })
+        ),
+      };
+    } else {
+      return {
+        ...state,
+        ships: [
+          ...ships.slice(0, action.index),
+          {
+            ...returnedShip,
+            coordinates: returnedShip.coordinates.map(coordinate => ({
+              ...coordinate,
+            })),
+            busyCellsX: [...returnedShip.busyCellsX],
+            busyCellsY: [...returnedShip.busyCellsY],
+          },
+          ...ships.slice(action.index + 1),
+        ],
+      };
+    }
+  }
+
+
+ */

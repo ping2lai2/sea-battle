@@ -80,14 +80,14 @@ const createCanvasShip = ship => {
   };
 };
 
-export const createCanvasData = ships =>
+export const createPlacementCanvasData = ships =>
   ships.map((ship, index) =>
     ship === undefined || ship === null
       ? abroadShips[index]
       : createCanvasShip(ship)
   );
 
-export const createOpponentCanvasData = ships =>
+export const createGameCanvasData = ships =>
   ships.map(ship =>
     ship === undefined || ship === null ? false : createCanvasShip(ship)
   );
@@ -229,20 +229,17 @@ export const drawShips = (ctx, ships) => {
   }
 };
 
-export const drawMatrixState = (ctx, matrix, isOpponent = false) => {
+export const drawMatrixState = (ctx, matrix) => {
   matrix.forEach((row, i) =>
     row.forEach((cell, j) => {
       switch (cell) {
-      case 1:
-      case 2:
-      case 3:
-      case 4:
-        if (!isOpponent) drawBusyCell(ctx, { x: i, y: j });
-        return false;
       case 6:
         drawMissCell(ctx, { x: i, y: j });
         return false;
       case 7:
+        drawBusyCell(ctx, { x: i, y: j });
+        return false;
+      case 8:
         drawHitCell(ctx, { x: i, y: j });
         return false;
       }
