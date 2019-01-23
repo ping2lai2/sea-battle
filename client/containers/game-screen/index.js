@@ -29,6 +29,7 @@ import {
   RECEIVE_DESTROYED_SHIP,
   RECEIVE_SHOOT_FEEDBACK,
   USER_HAS_WON,
+  LEAVE_ROOM,
 } from '../../../common/socketEvents';
 
 class Game extends React.PureComponent {
@@ -36,34 +37,36 @@ class Game extends React.PureComponent {
     gamersId: {},
   };
   componentDidMount() {
-    const { socket, restoreInitialWinner, match, setInfo, phrase } = this.props;
+    const { socket, restoreInitialWinner, match, setInfo } = this.props;
 
-    /* при заходе сбросить всю херню, забрать данные с оппонентов при выстреле игрока запустить таймер */
 
     restoreInitialWinner();
     setInfo(phrases.screen);
-console.log('frd')
+
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
-
     socket.on(RECEIVE_GAME_DATA, this.handleReceiveGameData);
-
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
-
     socket.on(USER_HAS_WON, this.handleUserHasWon);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
 
     socket.emit(REQUEST_GAME_DATA, match.params.roomID);
+    console.log(match.params);
   }
   componentWillUnmount() {
-    const { socket } = this.props;
+    const { socket, match} = this.props;
     //TODO: сбрось всё
     socket.removeListener(OPPONENT_LEFT, this.handleOpponentLeft);
+    socket.removeListener(RECEIVE_GAME_DATA, this.handleReceiveGameData);
+    socket.removeListener(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
+    socket.removeListener(USER_HAS_WON, this.handleUserHasWon);
+    socket.removeListener(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
+    socket.emit(LEAVE_ROOM, match.params.roomID);
   }
   handleReceiveGameData = data => {
     if (Object.entries(this.state.gamersId).length === 0) {
       this.setState({
         gamersId: {
-          [data.socketId]: 'A',
+          [data.socketId]: 'B',
         },
       });
       this.props.createReceivedOpponentData(data.ships, data.busyCellsMatrix, 'A');
@@ -71,7 +74,7 @@ console.log('frd')
       this.setState({
         gamersId: {
           ...this.state.gamersId,
-          [data.socketId]: 'B',
+          [data.socketId]: 'A',
         },
       });
       this.props.createReceivedOpponentData(data.ships, data.busyCellsMatrix, 'B');

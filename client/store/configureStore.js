@@ -12,12 +12,11 @@ const initialState = {};
 const middleware = [thunk, routerMiddleware(history)];
 const enhancers = [];
 
-
 const persistConfig = {
   key: 'root',
+  whitelist: ['shipsPlacement'],
   storage,
 };
-
 
 const persistedReducer = persistReducer(persistConfig, rootReducer(history));
 

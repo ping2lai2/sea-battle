@@ -17,6 +17,7 @@ import {
   runGame,
   restoreInitialWinner,
   disableGame,
+  createGameData,
 } from '../../actions';
 
 import Chat from '../chat';
@@ -50,7 +51,11 @@ class Game extends React.Component {
     super(props);
   }
   componentDidMount() {
-    const { socket, restoreInitialWinner, match, disableGame } = this.props;
+    const { socket, restoreInitialWinner, match, disableGame, shipsPlacement, createGameData } = this.props;
+    
+    //TODO: сначала проверить надо, есть ли данные вообще, если их нет, то вываливаемся отсюда и предупреждаем, что корабли не расставлены
+    
+    createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
     restoreInitialWinner();
     disableGame();
     /*TODO: 
@@ -119,6 +124,7 @@ class Game extends React.Component {
       RECEIVE_DESTROYED_SHIP,
       this.handleReceiveDestroyedShip
     );
+    socket.removeListener(GET_GAME_DATA, this.handleGetGameData);
   }
 
   handleCanUserShoot = () => {
@@ -291,12 +297,14 @@ const mapStateToProps = ({
   canShoot,
   gameStatus,
   winnerStatus,
+  shipsPlacement,
 }) => ({
   userData,
   opponentData: opponentDataA,
   canShoot,
   gameStatus,
   winnerStatus,
+  shipsPlacement,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -321,6 +329,9 @@ const mapDispatchToProps = dispatch => ({
 
   runGame: () => dispatch(runGame()),
   disableGame: () => dispatch(disableGame()),
+
+  createGameData: (ships, busyCellsMatrix) =>
+    dispatch(createGameData(ships, busyCellsMatrix)),
 });
 
 Game.propTypes = {
@@ -342,81 +353,3 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(Game);
-
-
-/*
- 
-case PUT_SHIPS_CELL_TO_USER_DATA: {
-    //TODO: здесь мы должны нетолько с кораблями манипуляции проводить
-    // но и запихивать в матрицу точки, которые уже однозначно не будут
-    // содержать корабли
-    const ships = [...state.ships];
-    let shipIsDestroyed = true;
-    const currentShip = {...state.ships[action.index]};
-    const returnedShip = {
-      ...currentShip,
-      coordinates: currentShip.coordinates.map(coord => {
-        if (coord.x === action.cell.x && coord.y === action.cell.y) {
-          coord.isDestroyed = true;
-        }
-        if (coord.isDestroyed === false) {
-          shipIsDestroyed = false;
-        }
-        return {...coord};
-      }),
-    };
-    returnedShip.isDestroyed = shipIsDestroyed;
-    if (shipIsDestroyed) {
-      const busyX = returnedShip.busyCellsX;
-      const busyY = returnedShip.busyCellsY;
-      //const coordsMin = returnedShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
-      //const coordsMax = returnedShip.coordinates[returnedShip.length - 1]; //право-низ (x, y, isDestroyed)
-      return {
-        ...state,
-        ships: [
-          ...ships.slice(0, action.index),
-
-          {
-            ...returnedShip,
-            coordinates: returnedShip.coordinates.map(coordinate => ({
-              ...coordinate,
-            })),
-            busyCellsX: [...returnedShip.busyCellsX],
-            busyCellsY: [...returnedShip.busyCellsY],
-          },
-          ...ships.slice(action.index + 1),
-        ],
-        busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
-          row.map((cell, j) => {
-            if (
-              i >= busyX[0] &&
-                i <= busyX[1] &&
-                j >= busyY[0] &&
-                j <= busyY[1]
-            ) {
-              return (cell = cell <= 4 ? 7 : cell);
-            }
-          })
-        ),
-      };
-    } else {
-      return {
-        ...state,
-        ships: [
-          ...ships.slice(0, action.index),
-          {
-            ...returnedShip,
-            coordinates: returnedShip.coordinates.map(coordinate => ({
-              ...coordinate,
-            })),
-            busyCellsX: [...returnedShip.busyCellsX],
-            busyCellsY: [...returnedShip.busyCellsY],
-          },
-          ...ships.slice(action.index + 1),
-        ],
-      };
-    }
-  }
-
-
- */

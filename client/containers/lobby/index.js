@@ -45,7 +45,8 @@ class Lobby extends React.Component {
     ) {
       socket.emit(FIND_ROOM);
       //TODO: opponentData должна создаваться непосредственно в игре, иначе из-за персиста получаем смесь
-      createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
+      // createGameData нужно перетащить в game
+     // createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
       setInfo(phrases.waitOpponent);
     } else {
       setInfo(phrases.notPut);

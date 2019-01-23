@@ -21,55 +21,73 @@ const {
   RECEIVE_GAME_DATA,
   GET_GAME_DATA,
   POST_GAME_DATA,
+  LEAVE_ROOM
 } = require('../common/socketEvents');
 
 const uuidv4 = require('uuid/v4');
 
 const randomOpponentRooms = [];
 const openedRooms = [];
-//const customOpponentRooms = [];
+
+
 
 module.exports = function(io) {
   io.on('connection', function(socket) {
+
     function handleFindRoom() {
-      let roomID = randomOpponentRooms.shift();
+      let roomID = randomOpponentRooms[0];
+
       if (roomID) {
+        const roomIndex = openedRooms.findIndex((room)=>room.roomID===roomID);
+        openedRooms[roomIndex].gamers.push(socket.id);
         socket.emit(RECEIVE_GAME_ROOM, roomID);
-        
       } else {
         roomID = createRoom();
         randomOpponentRooms.push(roomID);
-        openedRooms.push(roomID);
+        openedRooms.push({roomID, gamers: [socket.id] });
       }
-      socket.on('disconnect', function() {
-        //  если в комнате один игрок и он вышел, то комната не удаляется из списка!
-        // заходит второй игрок, комната удаляется из списка, проверяем наличие игроков, если меньше нужного, объявляем победу
-        //TODO: при перезагрузке страницы всё идет не так как надо
-        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
-        io.of('/').in(roomID).clients((error, socketIds) => {
-          if (error) throw error;
-          socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(roomID));
-        });
-        openedRooms.splice(openedRooms.indexOf(roomID), 1); 
-        console.log(io.sockets.adapter.rooms[roomID]);
-      });
     }
     function handleJoinGame(roomID) {
-      //TODO: если перезаходим в игру, а она уже завершилась, надо что-то придумать
-      console.log('try to join');
-      if (openedRooms.indexOf(roomID)<0) {
+      
+      if (openedRooms.findIndex((room)=>room.roomID===roomID) < 0) {
         return false;
       }
-      console.log('joined');
       socket.join(roomID);
       const clients = io.sockets.adapter.rooms[roomID];
       if (clients.length === 2) {
+        randomOpponentRooms.shift();
         io.in(roomID).emit(ALL_PLAYERS_CONNECTED); // получившие эту запись являются игроками
         console.log('game is started');
         const gameRoom = io.sockets.adapter.rooms[roomID];
         const first = Object.keys(gameRoom.sockets)[1 - defineFirst()];
         io.sockets.connected[first].emit(CAN_USER_SHOOT);
       }
+      socket.on('disconnect', function() {
+        //  если в комнате один игрок и он вышел, то комната не удаляется из списка!
+        // заходит второй игрок, комната удаляется из списка, проверяем наличие игроков, если меньше нужного, объявляем победу
+        //TODO: при перезагрузке страницы всё идет не так как надо
+        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
+        io.of('/')
+          .in(roomID)
+          .clients((error, socketIds) => {
+            if (error) throw error;
+            socketIds.forEach(socketId => {
+              console.log('disconnected ', socketId);
+              io.sockets.sockets[socketId].leave(roomID);
+            });
+          });
+        console.log('--------disconect');
+        console.log(openedRooms);
+        console.log(openedRooms.findIndex((room)=>room.roomID===roomID));
+        const roomIndex = openedRooms.findIndex((room)=>room.roomID===roomID);
+        const randomRoomIndex = randomOpponentRooms.findIndex((room)=>room.roomID===roomID); //если создали комнату и задисконнектили, её нужно удалить из этого списка
+        if (roomIndex > 0) {
+          openedRooms.splice(roomIndex, 1);
+        }
+        if (roomIndex > 0) {
+          randomOpponentRooms.splice(randomRoomIndex, 1);
+        }
+      });
     }
     function handleRequestGameRole(roomID) {
       const clients = io.sockets.adapter.rooms[roomID];
@@ -80,7 +98,7 @@ module.exports = function(io) {
       }
     }
     function handleRequestGameData(roomID) {
-      if (openedRooms.indexOf(roomID)<0) {
+      if (openedRooms.findIndex((room)=>room.roomID===roomID) < 0) {
         return false;
       }
       socket.join(roomID);
@@ -100,23 +118,6 @@ module.exports = function(io) {
       return roomID;
     }
 
-    /*
-    
-    socket.on(CREATE_CUSTOM_ROOM, handleCreateCustomRoom);
-    socket.on(JOIN_CUSTOM_ROOM, handleJoinCustomRoom);
-
-    function handleCreateCustomRoom() {
-      const roomID = uuidv4();
-      socket.emit(RECEIVE_CUSTOM_ROOM, roomID); //отправили айдишник в форму и на кнопку
-    }
-
-    function handleJoinCustomRoom(roomID) { //зашли с кнопки при создании
-      socket.join(roomID);
-      socket.emit(RECEIVE_GAME_ROOM, roomID);
-      customOpponentRooms.push(roomID);
-    }
-*/
-
     socket.on(JOIN_GAME, handleJoinGame);
     socket.on(SEND_SHOOT, handleSendShoot);
     socket.on(SEND_SHOOT_FEEDBACK, handleSendShootFeedback);
@@ -127,15 +128,27 @@ module.exports = function(io) {
     socket.on(REQUEST_GAME_ROLE, handleRequestGameRole);
     socket.on(REQUEST_GAME_DATA, handleRequestGameData);
     socket.on(POST_GAME_DATA, handlePostGameData);
+    socket.on(LEAVE_ROOM, handleLeaveRoom);
+
+    function handleLeaveRoom(payload) {
+
+      socket.leave(payload);
+    }
 
     function handleOpponentWinning(payload) {
       socket.broadcast.to(payload.roomID).emit(USER_HAS_WON);
-      io.of('/').in(payload.roomID).clients((error, socketIds) => {
-        if (error) throw error;
-        socketIds.forEach(socketId => io.sockets.sockets[socketId].leave(payload.roomID));
-      
-      });
-      openedRooms.splice(openedRooms.indexOf(payload.roomID), 1); 
+      io.of('/')
+        .in(payload.roomID)
+        .clients((error, socketIds) => {
+          if (error) throw error;
+          socketIds.forEach(socketId =>
+            io.sockets.sockets[socketId].leave(payload.roomID)
+          );
+        });
+      const roomIndex = openedRooms.findIndex((room)=>room.roomID===payload.roomID);
+      if (roomIndex > 0) {
+        openedRooms.splice(roomIndex, 1);
+      }
     }
 
     function handleSendDestroyedShip(payload) {
@@ -170,3 +183,26 @@ module.exports = function(io) {
     }
   });
 };
+
+/*
+      if (gameIsRunRooms.indexOf(roomID) >= 0) {
+        //TODO: дублируешь дисконект
+        console.log('ffffff');
+        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
+        io.of('/')
+          .in(roomID)
+          .clients((error, socketIds) => {
+            if (error) throw error;
+            socketIds.forEach(socketId =>
+              io.sockets.sockets[socketId].leave(roomID)
+            );
+          });
+        gameIsRunRooms.splice(gameIsRunRooms.indexOf(roomID), 1); //TODO:!!!!!!!
+        openedRooms.splice(openedRooms.indexOf(roomID), 1);
+        //TODO: кидать сообщение, что комната закрылась т.к. перезагрузили страницу
+        console.log('--------------------reload');
+        console.log('gameIsRunRooms', gameIsRunRooms);
+        console.log('openedRooms', openedRooms);
+        return false;
+      }
+      */
