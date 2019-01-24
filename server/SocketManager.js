@@ -21,7 +21,7 @@ const {
   RECEIVE_GAME_DATA,
   GET_GAME_DATA,
   POST_GAME_DATA,
-  LEAVE_ROOM
+  LEAVE_ROOM,
 } = require('../common/socketEvents');
 
 const uuidv4 = require('uuid/v4');
@@ -29,76 +29,90 @@ const uuidv4 = require('uuid/v4');
 const randomOpponentRooms = [];
 const openedRooms = [];
 
-
-
 module.exports = function(io) {
   io.on('connection', function(socket) {
+    
+    socket.on(JOIN_GAME, handleJoinGame);
+    socket.on(SEND_SHOOT, handleSendShoot);
+    socket.on(SEND_SHOOT_FEEDBACK, handleSendShootFeedback);
+    socket.on(SEND_DESTROYED_SHIP, handleSendDestroyedShip);
+    socket.on(OPPONENT_HAS_WON, handleOpponentWinning);
+    socket.on(SEND_MESSAGE, handleReceiveMessage);
+    socket.on(FIND_ROOM, handleFindRoom);
+    socket.on(REQUEST_GAME_ROLE, handleRequestGameRole);
+    socket.on(REQUEST_GAME_DATA, handleRequestGameData);
+    socket.on(POST_GAME_DATA, handlePostGameData);
+    socket.on(LEAVE_ROOM, handleLeaveRoom);
 
     function handleFindRoom() {
       let roomID = randomOpponentRooms[0];
 
       if (roomID) {
-        const roomIndex = openedRooms.findIndex((room)=>room.roomID===roomID);
-        openedRooms[roomIndex].gamers.push(socket.id);
         socket.emit(RECEIVE_GAME_ROOM, roomID);
       } else {
         roomID = createRoom();
         randomOpponentRooms.push(roomID);
-        openedRooms.push({roomID, gamers: [socket.id] });
+        openedRooms.push({ roomID, gamers: [] });
       }
     }
     function handleJoinGame(roomID) {
-      
-      if (openedRooms.findIndex((room)=>room.roomID===roomID) < 0) {
+      const roomIndex = openedRooms.findIndex(room => room.roomID === roomID);
+
+      if (roomIndex < 0 || openedRooms[roomIndex].gamers.includes(socket.id)) {
         return false;
       }
+
       socket.join(roomID);
-      const clients = io.sockets.adapter.rooms[roomID];
-      if (clients.length === 2) {
+      openedRooms[roomIndex].gamers.push(socket.id);
+      if (
+        !!openedRooms[roomIndex] &&
+        openedRooms[roomIndex].gamers.length === 2
+      ) {
         randomOpponentRooms.shift();
-        io.in(roomID).emit(ALL_PLAYERS_CONNECTED); // получившие эту запись являются игроками
-        console.log('game is started');
-        const gameRoom = io.sockets.adapter.rooms[roomID];
-        const first = Object.keys(gameRoom.sockets)[1 - defineFirst()];
-        io.sockets.connected[first].emit(CAN_USER_SHOOT);
+        io.in(roomID).emit(ALL_PLAYERS_CONNECTED);
+
+        const first = openedRooms[roomIndex].gamers[1 - defineFirst()];
+        io.in(roomID).emit(CAN_USER_SHOOT, {socketId: first});
+        //io.sockets.connected[first].emit(CAN_USER_SHOOT);
       }
+
       socket.on('disconnect', function() {
-        //  если в комнате один игрок и он вышел, то комната не удаляется из списка!
-        // заходит второй игрок, комната удаляется из списка, проверяем наличие игроков, если меньше нужного, объявляем победу
-        //TODO: при перезагрузке страницы всё идет не так как надо
-        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
+        socket.broadcast
+          .to(roomID)
+          .emit(OPPONENT_LEFT, { socketId: socket.id });
         io.of('/')
           .in(roomID)
           .clients((error, socketIds) => {
             if (error) throw error;
             socketIds.forEach(socketId => {
-              console.log('disconnected ', socketId);
               io.sockets.sockets[socketId].leave(roomID);
             });
           });
-        console.log('--------disconect');
-        console.log(openedRooms);
-        console.log(openedRooms.findIndex((room)=>room.roomID===roomID));
-        const roomIndex = openedRooms.findIndex((room)=>room.roomID===roomID);
-        const randomRoomIndex = randomOpponentRooms.findIndex((room)=>room.roomID===roomID); //если создали комнату и задисконнектили, её нужно удалить из этого списка
-        if (roomIndex > 0) {
+
+        const roomIndex = openedRooms.findIndex(room => room.roomID === roomID);
+        const randomRoomIndex = randomOpponentRooms.indexOf(roomID);
+        if (roomIndex >= 0) {
           openedRooms.splice(roomIndex, 1);
         }
-        if (roomIndex > 0) {
+        if (randomRoomIndex >= 0) {
           randomOpponentRooms.splice(randomRoomIndex, 1);
         }
       });
     }
     function handleRequestGameRole(roomID) {
-      const clients = io.sockets.adapter.rooms[roomID];
-      if (clients === undefined || clients.length < 2) {
+      const roomIndex = openedRooms.findIndex(room => room.roomID === roomID);
+
+      if (
+        !!openedRooms[roomIndex] &&
+        openedRooms[roomIndex].gamers.length < 2
+      ) {
         io.to(`${socket.id}`).emit(RECEIVE_GAME_ROLE, true);
       } else {
         io.to(`${socket.id}`).emit(RECEIVE_GAME_ROLE, false);
       }
     }
     function handleRequestGameData(roomID) {
-      if (openedRooms.findIndex((room)=>room.roomID===roomID) < 0) {
+      if (openedRooms.findIndex(room => room.roomID === roomID) < 0) {
         return false;
       }
       socket.join(roomID);
@@ -118,25 +132,16 @@ module.exports = function(io) {
       return roomID;
     }
 
-    socket.on(JOIN_GAME, handleJoinGame);
-    socket.on(SEND_SHOOT, handleSendShoot);
-    socket.on(SEND_SHOOT_FEEDBACK, handleSendShootFeedback);
-    socket.on(SEND_DESTROYED_SHIP, handleSendDestroyedShip);
-    socket.on(OPPONENT_HAS_WON, handleOpponentWinning);
-    socket.on(SEND_MESSAGE, handleReceiveMessage);
-    socket.on(FIND_ROOM, handleFindRoom);
-    socket.on(REQUEST_GAME_ROLE, handleRequestGameRole);
-    socket.on(REQUEST_GAME_DATA, handleRequestGameData);
-    socket.on(POST_GAME_DATA, handlePostGameData);
-    socket.on(LEAVE_ROOM, handleLeaveRoom);
+    /*-----------------------------------------------*/
 
     function handleLeaveRoom(payload) {
-
-      socket.leave(payload);
+      socket.leave(payload.roomID);
     }
 
     function handleOpponentWinning(payload) {
-      socket.broadcast.to(payload.roomID).emit(USER_HAS_WON);
+      socket.broadcast
+        .to(payload.roomID)
+        .emit(USER_HAS_WON, { socketId: socket.id });
       io.of('/')
         .in(payload.roomID)
         .clients((error, socketIds) => {
@@ -145,8 +150,10 @@ module.exports = function(io) {
             io.sockets.sockets[socketId].leave(payload.roomID)
           );
         });
-      const roomIndex = openedRooms.findIndex((room)=>room.roomID===payload.roomID);
-      if (roomIndex > 0) {
+      const roomIndex = openedRooms.findIndex(
+        room => room.roomID === payload.roomID
+      );
+      if (roomIndex >= 0) {
         openedRooms.splice(roomIndex, 1);
       }
     }
@@ -183,26 +190,3 @@ module.exports = function(io) {
     }
   });
 };
-
-/*
-      if (gameIsRunRooms.indexOf(roomID) >= 0) {
-        //TODO: дублируешь дисконект
-        console.log('ffffff');
-        socket.broadcast.to(roomID).emit(OPPONENT_LEFT);
-        io.of('/')
-          .in(roomID)
-          .clients((error, socketIds) => {
-            if (error) throw error;
-            socketIds.forEach(socketId =>
-              io.sockets.sockets[socketId].leave(roomID)
-            );
-          });
-        gameIsRunRooms.splice(gameIsRunRooms.indexOf(roomID), 1); //TODO:!!!!!!!
-        openedRooms.splice(openedRooms.indexOf(roomID), 1);
-        //TODO: кидать сообщение, что комната закрылась т.к. перезагрузили страницу
-        console.log('--------------------reload');
-        console.log('gameIsRunRooms', gameIsRunRooms);
-        console.log('openedRooms', openedRooms);
-        return false;
-      }
-      */

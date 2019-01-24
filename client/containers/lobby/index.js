@@ -9,7 +9,6 @@ import {
   addToBusyCells,
   removeFromBusyCells,
   changeShipPosition,
-  createGameData,
   setInfo,
 } from '../../actions';
 
@@ -38,15 +37,13 @@ class Lobby extends React.Component {
   }
 
   _onClick = () => {
-    const { shipsPlacement, createGameData, socket, setInfo } = this.props;
+    const { shipsPlacement, socket, setInfo } = this.props;
     if (
       !shipsPlacement.ships.includes(undefined) &&
       !shipsPlacement.ships.includes(null) //&& !shipsPlacement.ships.includes(null)
     ) {
       socket.emit(FIND_ROOM);
       //TODO: opponentData должна создаваться непосредственно в игре, иначе из-за персиста получаем смесь
-      // createGameData нужно перетащить в game
-     // createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
       setInfo(phrases.waitOpponent);
     } else {
       setInfo(phrases.notPut);
@@ -99,8 +96,6 @@ const mapDispatchToProps = dispatch => ({
   recalculateShipsData: (ships, busyCellsMatrix) =>
     dispatch(recalculateShipsData(ships, busyCellsMatrix)),
 
-  createGameData: (ships, busyCellsMatrix) =>
-    dispatch(createGameData(ships, busyCellsMatrix)),
 
   setInfo: phrase => dispatch(setInfo(phrase)),
 });
@@ -115,7 +110,6 @@ Lobby.propTypes = {
   addToBusyCells: PropTypes.func.isRequired,
   removeFromBusyCells: PropTypes.func.isRequired,
   changeShipPosition: PropTypes.func.isRequired,
-  createGameData: PropTypes.func.isRequired,
   history: PropTypes.object.isRequired,
   socket: PropTypes.object.isRequired,
   setInfo: PropTypes.func.isRequired,

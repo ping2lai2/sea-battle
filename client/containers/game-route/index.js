@@ -1,12 +1,17 @@
 import React from 'react';
+import { connect } from 'react-redux';
+
 import Game from '../../containers/game';
 import GameScreen from '../../containers/game-screen';
 import PropTypes from 'prop-types';
+
 
 import {
   RECEIVE_GAME_ROLE,
   REQUEST_GAME_ROLE,
 } from '../../../common/socketEvents';
+
+import { createGameData } from '../../actions';
 
 class GameRoute extends React.Component {
   state = {
@@ -26,30 +31,40 @@ class GameRoute extends React.Component {
     this.setState({ isGamer: data });
   };
   handleRender = () => {
-    //const { isGamer } = this.state;
-    switch (this.state.isGamer) {
-    case true:
+    const { isGamer } = this.state;
+    const { shipsPlacement } = this.props;
+    if (
+      isGamer === true &&
+      !(shipsPlacement.ships.includes(undefined) ||
+        shipsPlacement.ships.includes(null))
+    ) {
       return <Game {...this.props} />;
-    case false:
+    } else if (isGamer !== null) {
       return <GameScreen {...this.props} />;
-    default:
-      return <div />;
     }
-
-    /*
-    if (isGamer === true) return <Game {...this.props} />;
-    else if (isGamer === false) return <GameScreen {...this.props} />;
-    else return <div />;
-    */
+    return <div />;
   };
   render() {
     return this.handleRender();
   }
 }
 
+const mapStateToProps = ({ shipsPlacement }) => ({
+  shipsPlacement,
+});
+
+const mapDispatchToProps = dispatch => ({
+  createGameData: (ships, busyCellsMatrix) =>
+    dispatch(createGameData(ships, busyCellsMatrix)),
+});
+
 GameRoute.propTypes = {
   socket: PropTypes.object.isRequired,
   match: PropTypes.object.isRequired,
+  createGameData: PropTypes.func.isRequired,
 };
 
-export default GameRoute;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(GameRoute);

@@ -1,6 +1,9 @@
 export const getRandomInt = (min, max) =>
   Math.floor(Math.random() * (max - min + 1) + min);
 
+export const getObjKey = (obj, val) =>
+  Object.keys(obj).find(key => obj[key] === val);
+
 export const hardClone = obj => JSON.parse(JSON.stringify(obj));
 
 export const generateRandomShipsCoordinates = (ships = [4, 3, 2, 1]) => {

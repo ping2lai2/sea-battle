@@ -8,21 +8,18 @@ import {
   createReceivedOpponentData,
   putCellToOpponentData,
   putShipToOpponentData,
-  restoreInitialTimer,
   setInfo,
-  determineWinner,
-  restoreInitialWinner,
 } from '../../actions';
 
 import Chat from '../chat';
 import UserGrid from '../../components/user-grid';
-import OpponentGrid from '../../components/opponent-grid';
 
 import phrases from '../../api/phrases';
 
 import './style.css';
 
 import {
+  ALL_PLAYERS_CONNECTED,
   OPPONENT_LEFT,
   REQUEST_GAME_DATA,
   RECEIVE_GAME_DATA,
@@ -32,35 +29,46 @@ import {
   LEAVE_ROOM,
 } from '../../../common/socketEvents';
 
-class Game extends React.PureComponent {
+class Game extends React.Component {
   state = {
     gamersId: {},
   };
   componentDidMount() {
-    const { socket, restoreInitialWinner, match, setInfo } = this.props;
+    const { socket, match, setInfo } = this.props;
 
-
-    restoreInitialWinner();
     setInfo(phrases.screen);
 
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
+    socket.on(USER_HAS_WON, this.handleUserHasWon);
+    socket.on(ALL_PLAYERS_CONNECTED, this.handleAllPlayersConnected);
+
     socket.on(RECEIVE_GAME_DATA, this.handleReceiveGameData);
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
-    socket.on(USER_HAS_WON, this.handleUserHasWon);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
 
+
     socket.emit(REQUEST_GAME_DATA, match.params.roomID);
-    console.log(match.params);
   }
   componentWillUnmount() {
-    const { socket, match} = this.props;
-    //TODO: сбрось всё
+    const { socket, match } = this.props;
     socket.removeListener(OPPONENT_LEFT, this.handleOpponentLeft);
+    socket.removeListener(
+      ALL_PLAYERS_CONNECTED,
+      this.handleAllPlayersConnected
+    );
     socket.removeListener(RECEIVE_GAME_DATA, this.handleReceiveGameData);
-    socket.removeListener(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
+    socket.removeListener(
+      RECEIVE_SHOOT_FEEDBACK,
+      this.handleReceiveShootFeedback
+    );
     socket.removeListener(USER_HAS_WON, this.handleUserHasWon);
-    socket.removeListener(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
-    socket.emit(LEAVE_ROOM, match.params.roomID);
+    socket.removeListener(
+      RECEIVE_DESTROYED_SHIP,
+      this.handleReceiveDestroyedShip
+    );
+
+
+    socket.emit(LEAVE_ROOM, { roomID: match.params.roomID }); //need to test
   }
   handleReceiveGameData = data => {
     if (Object.entries(this.state.gamersId).length === 0) {
@@ -69,7 +77,11 @@ class Game extends React.PureComponent {
           [data.socketId]: 'B',
         },
       });
-      this.props.createReceivedOpponentData(data.ships, data.busyCellsMatrix, 'A');
+      this.props.createReceivedOpponentData(
+        data.ships,
+        data.busyCellsMatrix,
+        'A'
+      );
     } else {
       this.setState({
         gamersId: {
@@ -77,55 +89,55 @@ class Game extends React.PureComponent {
           [data.socketId]: 'A',
         },
       });
-      this.props.createReceivedOpponentData(data.ships, data.busyCellsMatrix, 'B');
+      this.props.createReceivedOpponentData(
+        data.ships,
+        data.busyCellsMatrix,
+        'B'
+      );
     }
-    console.log(this.state);
-    console.log(this.props.opponentDataA);
-    console.log(this.props.opponentDataB);
   };
+
 
   // получили результат выстрела
   handleReceiveShootFeedback = data => {
-    console.log(data.socketId);
-    console.log(data);
     const { putCellToOpponentData, setInfo } = this.props;
-    if (data.hit) {
-      setInfo(phrases.user);
-    } else {
-      setInfo(phrases.opponent);
+    if (!data.hit) {
+      setInfo(`Ходит Игрок ${this.state.gamersId[data.socketId]}`);
     }
-    console.log(this.state.gamersId);
-    console.log(data.socketId);
-    console.log(this.state.gamersId[data.socketId]);
-    console.log(typeof this.state.gamersId[data.socketId]);
-    putCellToOpponentData(data.cell, data.hit, this.state.gamersId[data.socketId]);
+
+    putCellToOpponentData(
+      data.cell,
+      data.hit,
+      this.state.gamersId[data.socketId]
+    );
   };
 
   handleReceiveDestroyedShip = data => {
-    console.log(data.socketId);
-    console.log(data);
-    const { putShipToOpponentData, setInfo } = this.props;
-    setInfo(phrases.user);
-    console.log(this.state.gamersId);
-    console.log(data.socketId);
-    console.log(this.state.gamersId[data.socketId]);
-    console.log(typeof this.state.gamersId[data.socketId]);
-    putShipToOpponentData(data.index, data.ship, this.state.gamersId[data.socketId]);
+    const { putShipToOpponentData } = this.props;
+    putShipToOpponentData(
+      data.index,
+      data.ship,
+      this.state.gamersId[data.socketId]
+    );
+  };
+  handleAllPlayersConnected = () => {
+    if (Object.entries(this.state.gamersId).length < 2) {
+      this.setState({
+        gamersId: {},
+      });
+      const { socket, match } = this.props;
+      socket.emit(REQUEST_GAME_DATA, match.params.roomID);
+    }
   };
 
-  //TODO: прокидывать id
-  handleUserHasWon = () => {
-    const { setInfo, determineWinner } = this.props;
-    setInfo(phrases.win);
-    determineWinner(true);
+  handleUserHasWon = data => {
+    const { setInfo } = this.props;
+    setInfo(`Игрок ${this.state.gamersId[data.socketId]} проиграл`);
   };
-  //TODO: прокидывать id
-  handleOpponentLeft = () => {
-    const { setInfo, determineWinner, gameStatus } = this.props;
-    if (gameStatus) {
-      setInfo(phrases.disconnect);
-      determineWinner(true);
-    }
+
+  handleOpponentLeft = data => {
+    const { setInfo } = this.props;
+    setInfo(`Игрок ${this.state.gamersId[data.socketId]} вышел`);
   };
 
   render() {
@@ -138,8 +150,14 @@ class Game extends React.PureComponent {
           </Link>
         </div>
         <div className="field">
-          <UserGrid {...opponentDataA} />
-          <UserGrid {...opponentDataB} />
+          <div>
+            <UserGrid {...opponentDataA} />
+            {'Игрок A'}
+          </div>
+          <div>
+            <UserGrid {...opponentDataB} />
+            {'Игрок B'}
+          </div>
         </div>
         <Chat />
       </div>
@@ -147,25 +165,12 @@ class Game extends React.PureComponent {
   }
 }
 
-const mapStateToProps = ({
-  userData,
+const mapStateToProps = ({ opponentDataA, opponentDataB }) => ({
   opponentDataA,
   opponentDataB,
-  gameStatus,
-  winnerStatus,
-}) => ({
-  userData,
-  opponentDataA,
-  opponentDataB,
-  gameStatus,
-  winnerStatus,
 });
 
 const mapDispatchToProps = dispatch => ({
-  restoreInitialTimer: () => dispatch(restoreInitialTimer()),
-
-  restoreInitialWinner: () => dispatch(restoreInitialWinner()),
-
   createReceivedOpponentData: (ships, busyCellsMatrix, name) =>
     dispatch(createReceivedOpponentData(ships, busyCellsMatrix, name)),
 
@@ -175,23 +180,19 @@ const mapDispatchToProps = dispatch => ({
     dispatch(putShipToOpponentData(index, ship, name)),
 
   setInfo: phrase => dispatch(setInfo(phrase)),
-
-  determineWinner: bool => dispatch(determineWinner(bool)),
 });
 
 Game.propTypes = {
-  userData: PropTypes.shape({
+  opponentDataA: PropTypes.shape({
     ships: PropTypes.array.isRequired,
     busyCellsMatrix: PropTypes.array.isRequired,
   }).isRequired,
-  opponentData: PropTypes.shape({
+  opponentDataB: PropTypes.shape({
     ships: PropTypes.array.isRequired,
     busyCellsMatrix: PropTypes.array.isRequired,
   }).isRequired,
-  userShoot: PropTypes.bool,
-  gameStatus: PropTypes.bool.isRequired,
   socket: PropTypes.object.isRequired,
-  runGame: PropTypes.func.isRequired,
+  match: PropTypes.object.isRequired,
 };
 
 export default connect(

@@ -4,7 +4,6 @@ import { Route, Switch } from 'react-router';
 import io from 'socket.io-client';
 
 import Lobby from '../../containers/lobby';
-import Game from '../../containers/game';
 import GameRoute from '../../containers/game-route';
 import GameInfo from '../../containers/game-info';
 
