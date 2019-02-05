@@ -30,7 +30,7 @@ import {
   OPPONENT_LEFT,
   ALL_PLAYERS_CONNECTED,
   JOIN_GAME,
-  CAN_USER_SHOOT,
+  USERS_TURN,
   SEND_SHOOT,
   SEND_DESTROYED_SHIP,
   SEND_SHOOT_FEEDBACK,
@@ -57,9 +57,9 @@ class Game extends React.Component {
 
     createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
 
-    socket.on(ALL_PLAYERS_CONNECTED, this.allPlayersConnected);
+    socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.on(CAN_USER_SHOOT, this.handleCanUserShoot);
+    socket.on(USERS_TURN, this.handleUsersTurn);
     socket.on(RECEIVE_SHOOT, this.handleReceiveShoot);
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
     socket.on(USER_HAS_WON, this.handleUserHasWon);
@@ -71,9 +71,9 @@ class Game extends React.Component {
   componentWillUnmount() {
     const { socket } = this.props;
 
-    socket.removeListener(ALL_PLAYERS_CONNECTED, this.allPlayersConnected);
+    socket.removeListener(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
     socket.removeListener(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.removeListener(CAN_USER_SHOOT, this.handleCanUserShoot);
+    socket.removeListener(USERS_TURN, this.handleUsersTurn);
     socket.removeListener(RECEIVE_SHOOT, this.handleReceiveShoot);
     socket.removeListener(
       RECEIVE_SHOOT_FEEDBACK,
@@ -87,9 +87,9 @@ class Game extends React.Component {
     socket.removeListener(GET_GAME_DATA, this.handleGetGameData);
   }
 
-  handleCanUserShoot = (data) => {
+  handleUsersTurn = data => {
     const { canUserShoot, setInfo, socket } = this.props;
-    if(data.socketId===socket.id){
+    if (data.socketId === socket.id) {
       canUserShoot(true);
       setInfo(phrases.user);
     }
@@ -101,7 +101,6 @@ class Game extends React.Component {
       canUserShoot,
       restoreInitialTimer,
       socket,
-
     } = this.props;
     if (canShoot) {
       socket.emit(SEND_SHOOT, { roomID: match.params.roomID, cell });
@@ -110,22 +109,22 @@ class Game extends React.Component {
     }
   };
 
-
   handleReceiveShoot = cell => {
     const {
       userData,
       socket,
-      match,
-      putCellToUserData,
+      match: {
+        params: { roomID },
+      },
       putShipsCellToUserData,
-      canUserShoot,
-      restoreInitialTimer,
-      setInfo,
+      putCellToUserData,
       determineWinner,
+      restoreInitialTimer,
+      canUserShoot,
+      setInfo,
     } = this.props;
-    const hit = userData.busyCellsMatrix[cell.x][cell.y] == 5 ? true : false;
 
-    if (hit) {
+    if (userData.busyCellsMatrix[cell.x][cell.y] === 5) {
       // индекс корабля, в который попали
       const shipIndex = userData.ships.findIndex(ship => {
         return ship.coordinates.find(coord => {
@@ -133,23 +132,23 @@ class Game extends React.Component {
         });
       });
       putShipsCellToUserData(shipIndex, cell);
-      const newUserData = this.props.userData; 
+      const newUserData = this.props.userData;
       if (newUserData.ships[shipIndex].isDestroyed) {
         socket.emit(SEND_DESTROYED_SHIP, {
           index: shipIndex,
           ship: newUserData.ships[shipIndex],
-          roomID: match.params.roomID,
+          roomID,
         });
         if (!newUserData.ships.some(ship => ship.isDestroyed === false)) {
-          socket.emit(OPPONENT_HAS_WON, { roomID: match.params.roomID });
+          socket.emit(OPPONENT_HAS_WON, { roomID });
           determineWinner(false);
           setInfo(phrases.loose);
         }
       } else {
         socket.emit(SEND_SHOOT_FEEDBACK, {
           cell,
-          hit,
-          roomID: match.params.roomID,
+          hit: true,
+          roomID,
         });
         canUserShoot(false);
         setInfo(phrases.opponent);
@@ -157,8 +156,8 @@ class Game extends React.Component {
     } else {
       socket.emit(SEND_SHOOT_FEEDBACK, {
         cell,
-        hit,
-        roomID: match.params.roomID,
+        hit: false,
+        roomID,
       });
       canUserShoot(true);
       setInfo(phrases.user);
@@ -169,7 +168,7 @@ class Game extends React.Component {
 
   // получили результат выстрела
   handleReceiveShootFeedback = data => {
-    const { canUserShoot, putCellToOpponentData, setInfo } = this.props;
+    const { canUserShoot, setInfo, putCellToOpponentData } = this.props;
     if (data.hit) {
       canUserShoot(true);
       setInfo(phrases.user);
@@ -197,7 +196,7 @@ class Game extends React.Component {
       ...opponentData,
     });
   };
-  allPlayersConnected = () => {
+  handlePlayersConnected = () => {
     const { setInfo, runGame } = this.props;
     setInfo(phrases.opponent);
     runGame();
@@ -234,6 +233,7 @@ class Game extends React.Component {
               setInfo={setInfo}
               canShoot={canShoot}
               determineWinner={determineWinner}
+              restoreInitialTimer={restoreInitialTimer}
             />
           ) : (
             <Link className="return-button" to="/">

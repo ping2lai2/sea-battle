@@ -3,21 +3,19 @@ import { connect } from 'react-redux';
 
 import PropTypes from 'prop-types';
 
+import { setInfo } from '../../actions';
+
 import {
   recalculateShipsData,
   clearShipsData,
   addToBusyCells,
   removeFromBusyCells,
   changeShipPosition,
-  setInfo,
-} from '../../actions';
+} from '../../actions/shipsPlacement';
 
 import phrases from '../../api/phrases';
 
-import {
-  RECEIVE_GAME_ROOM,
-  FIND_ROOM,
-} from '../../../common/socketEvents';
+import { RECEIVE_GAME_ROOM, FIND_ROOM } from '../../../common/socketEvents';
 
 import PlacementGrid from '../../components/placement-grid';
 import NewGameCreator from '../../components/new-game-creator';
@@ -36,19 +34,32 @@ class Lobby extends React.Component {
     });
   }
 
-  _onClick = () => {
+  runGame = (gameType = true) => {
     const { shipsPlacement, socket, setInfo } = this.props;
     if (
       !shipsPlacement.ships.includes(undefined) &&
       !shipsPlacement.ships.includes(null) //&& !shipsPlacement.ships.includes(null)
     ) {
-      socket.emit(FIND_ROOM);
-      //TODO: opponentData должна создаваться непосредственно в игре, иначе из-за персиста получаем смесь
-      setInfo(phrases.waitOpponent);
+      switch (gameType) {
+      case 'random': {
+        socket.emit(FIND_ROOM);
+        //TODO: opponentData должна создаваться непосредственно в игре, иначе из-за персиста получаем смесь
+        setInfo(phrases.waitOpponent);
+        break;
+      }
+      case 'own': {
+        setInfo(phrases.waitOpponent);
+        break;
+      }
+      default: {
+        setInfo(phrases.init);
+      }
+      }
     } else {
       setInfo(phrases.notPut);
     }
   };
+
   render() {
     const {
       shipsPlacement,
@@ -71,13 +82,12 @@ class Lobby extends React.Component {
             changeShipPosition={changeShipPosition}
           />
 
-          <NewGameCreator canRunGame={this._onClick} />
+          <NewGameCreator runGame={this.runGame} />
         </div>
       </div>
     );
   }
 }
-
 
 const mapStateToProps = ({ shipsPlacement }) => ({
   shipsPlacement,
@@ -95,7 +105,6 @@ const mapDispatchToProps = dispatch => ({
 
   recalculateShipsData: (ships, busyCellsMatrix) =>
     dispatch(recalculateShipsData(ships, busyCellsMatrix)),
-
 
   setInfo: phrase => dispatch(setInfo(phrase)),
 });

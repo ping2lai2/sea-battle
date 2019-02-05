@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { decrementTimer, restoreInitialTimer } from '../../actions';
+import { decrementTimer} from '../../actions';
 import phrases from '../../api/phrases';
 
 import { OPPONENT_HAS_WON } from '../../../common/socketEvents';
@@ -57,7 +57,6 @@ const mapStateToProps = ({ timer }) => ({
 
 const mapDispatchToProps = dispatch => ({
   decrementTimer: time => dispatch(decrementTimer(time)),
-  restoreInitialTimer: () => dispatch(restoreInitialTimer()),
 });
 
 Timer.propTypes = {

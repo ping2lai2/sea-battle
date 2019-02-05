@@ -2,7 +2,7 @@ const {
   RECEIVE_GAME_ROOM,
   JOIN_GAME,
   OPPONENT_LEFT,
-  CAN_USER_SHOOT,
+  USERS_TURN,
   SEND_SHOOT,
   RECEIVE_SHOOT,
   SEND_SHOOT_FEEDBACK,
@@ -72,8 +72,8 @@ module.exports = function(io) {
         io.in(roomID).emit(ALL_PLAYERS_CONNECTED);
 
         const first = openedRooms[roomIndex].gamers[1 - defineFirst()];
-        io.in(roomID).emit(CAN_USER_SHOOT, {socketId: first});
-        //io.sockets.connected[first].emit(CAN_USER_SHOOT);
+        io.in(roomID).emit(USERS_TURN, {socketId: first});
+        //io.sockets.connected[first].emit(USERS_TURN);
       }
 
       socket.on('disconnect', function() {

@@ -4,7 +4,7 @@ import {
   ADD_TO_BUSY_CELLS,
   REMOVE_FROM_BUSY_CELLS,
   CHANGE_SHIP_POSITION,
-} from '../actions';
+} from '../actions/shipsPlacement';
 
 const initialState = {
   ships: Array(10).fill(undefined),
