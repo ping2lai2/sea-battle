@@ -100,11 +100,11 @@ class Lobby extends React.Component {
   runOwnGame = () => {
     this.runGame(REQUEST_OWN_ROOM);
   };
-  choosePlayerType = (userType) => {
+  choosePlayerType = (gamerType) => {
     const { socket, roomId, setInfo } = this.props;
     setInfo(phrases.waitOpponent);
     console.log(roomId);
-    socket.emit(JOIN_OWN_GAME, { roomId, userType });
+    socket.emit(JOIN_OWN_GAME, { roomId, gamerType });
   };
   closeRandomGame = () => {
     this.closeGame(CLOSE_RANDOM_GAME);

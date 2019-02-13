@@ -196,8 +196,8 @@ class PlacementGrid extends React.Component {
   };
   render() {
     return (
-      <div className="user-field">
-        <div className="user-grid">
+      <div className="gamer-field">
+        <div className="gamer-grid">
           <canvas
             ref={this.canvas}
             onMouseDown={this._mouseDown}

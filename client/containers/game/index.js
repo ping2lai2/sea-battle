@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 import {
-  canUserShoot,
-  putCellToUserData,
-  putShipToUserData,
-  putShipsCellToUserData,
+  canGamerShoot,
+  putCellToGamerData,
+  putShipToGamerData,
+  putShipsCellToGamerData,
   putCellToOpponentData,
   putShipToOpponentData,
   restoreInitialTimer,
@@ -21,7 +21,7 @@ import {
 
 import Chat from '../chat';
 import Timer from '../../containers/timer';
-import UserGrid from '../../components/user-grid';
+import GamerGrid from '../../components/gamer-grid';
 import OpponentGrid from '../../components/opponent-grid';
 
 import phrases from '../../api/phrases';
@@ -63,10 +63,10 @@ class Game extends React.Component {
 
     // socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.on(USERS_TURN, this.handleUsersTurn);
+    socket.on(USERS_TURN, this.handleGamersTurn);
     socket.on(RECEIVE_SHOOT, this.handleReceiveShoot);
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
-    socket.on(USER_HAS_WON, this.handleUserHasWon);
+    socket.on(USER_HAS_WON, this.handleGamerHasWon);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
     socket.on(GET_GAME_DATA, this.handleGetGameData);
   }
@@ -78,13 +78,13 @@ class Game extends React.Component {
       this.handlePlayersConnected
     );
     socket.removeEventListener(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.removeEventListener(USERS_TURN, this.handleUsersTurn);
+    socket.removeEventListener(USERS_TURN, this.handleGamersTurn);
     socket.removeEventListener(RECEIVE_SHOOT, this.handleReceiveShoot);
     socket.removeEventListener(
       RECEIVE_SHOOT_FEEDBACK,
       this.handleReceiveShootFeedback
     );
-    socket.removeEventListener(USER_HAS_WON, this.handleUserHasWon);
+    socket.removeEventListener(USER_HAS_WON, this.handleGamerHasWon);
     socket.removeEventListener(
       RECEIVE_DESTROYED_SHIP,
       this.handleReceiveDestroyedShip
@@ -92,17 +92,17 @@ class Game extends React.Component {
     socket.removeEventListener(GET_GAME_DATA, this.handleGetGameData);
   }
 
-  handleUsersTurn = data => {
-    const { canUserShoot, setInfo, socket } = this.props;
+  handleGamersTurn = data => {
+    const { canGamerShoot, setInfo, socket } = this.props;
     if (data.socketId === socket.id) {
-      canUserShoot(true);
-      setInfo(phrases.user);
+      canGamerShoot(true);
+      setInfo(phrases.gamer);
     }
   };
   handleSendShoot = cell => {
     const {
       canShoot,
-      canUserShoot,
+      canGamerShoot,
       restoreInitialTimer,
       socket,
       roomId,
@@ -110,40 +110,40 @@ class Game extends React.Component {
     console.log(roomId);
     if (canShoot) {
       socket.emit(SEND_SHOOT, { roomId, cell });
-      canUserShoot(false);
+      canGamerShoot(false);
       restoreInitialTimer();
     }
   };
 
   handleReceiveShoot = cell => {
     const {
-      userData,
+      gamerData,
       socket,
       roomId,
-      putShipsCellToUserData,
-      putCellToUserData,
+      putShipsCellToGamerData,
+      putCellToGamerData,
       determineWinner,
       restoreInitialTimer,
-      canUserShoot,
+      canGamerShoot,
       setInfo,
     } = this.props;
     console.log('received shoot')
-    if (userData.busyCellsMatrix[cell.x][cell.y] === 5) {
+    if (gamerData.busyCellsMatrix[cell.x][cell.y] === 5) {
       // индекс корабля, в который попали
-      const shipIndex = userData.ships.findIndex(ship => {
+      const shipIndex = gamerData.ships.findIndex(ship => {
         return ship.coordinates.find(coord => {
           return coord.x === cell.x && coord.y === cell.y;
         });
       });
-      putShipsCellToUserData(shipIndex, cell);
-      const newUserData = this.props.userData;
-      if (newUserData.ships[shipIndex].isDestroyed) {
+      putShipsCellToGamerData(shipIndex, cell);
+      const newGamerData = this.props.gamerData;
+      if (newGamerData.ships[shipIndex].isDestroyed) {
         socket.emit(SEND_DESTROYED_SHIP, {
           index: shipIndex,
-          ship: newUserData.ships[shipIndex],
+          ship: newGamerData.ships[shipIndex],
           roomId,
         });
-        if (!newUserData.ships.some(ship => ship.isDestroyed === false)) {
+        if (!newGamerData.ships.some(ship => ship.isDestroyed === false)) {
           socket.emit(OPPONENT_HAS_WON, { roomId });
           determineWinner(false);
           setInfo(phrases.loose);
@@ -154,7 +154,7 @@ class Game extends React.Component {
           hit: true,
           roomId,
         });
-        canUserShoot(false);
+        canGamerShoot(false);
         setInfo(phrases.opponent);
       }
     } else {
@@ -163,19 +163,19 @@ class Game extends React.Component {
         hit: false,
         roomId,
       });
-      canUserShoot(true);
-      setInfo(phrases.user);
+      canGamerShoot(true);
+      setInfo(phrases.gamer);
     }
-    putCellToUserData(cell); //TODO: выше
+    putCellToGamerData(cell); //TODO: выше
     restoreInitialTimer();
   };
 
   // получили результат выстрела
   handleReceiveShootFeedback = data => {
-    const { canUserShoot, setInfo, putCellToOpponentData } = this.props;
+    const { canGamerShoot, setInfo, putCellToOpponentData } = this.props;
     if (data.hit) {
-      canUserShoot(true);
-      setInfo(phrases.user);
+      canGamerShoot(true);
+      setInfo(phrases.gamer);
     } else {
       setInfo(phrases.opponent);
     }
@@ -183,12 +183,12 @@ class Game extends React.Component {
   };
 
   handleReceiveDestroyedShip = data => {
-    const { canUserShoot, putShipToOpponentData, setInfo } = this.props;
-    canUserShoot(true);
-    setInfo(phrases.user);
+    const { canGamerShoot, putShipToOpponentData, setInfo } = this.props;
+    canGamerShoot(true);
+    setInfo(phrases.gamer);
     putShipToOpponentData(data.index, data.ship);
   };
-  handleUserHasWon = () => {
+  handleGamerHasWon = () => {
     const { setInfo, determineWinner } = this.props;
     setInfo(phrases.win);
     determineWinner(true);
@@ -216,7 +216,7 @@ class Game extends React.Component {
 
   render() {
     const {
-      userData,
+      gamerData,
       opponentData,
       socket,
       setInfo,
@@ -246,7 +246,7 @@ class Game extends React.Component {
           )}
         </div>
         <div className="field">
-          <UserGrid {...userData} />
+          <GamerGrid {...gamerData} />
           <OpponentGrid {...opponentData} sendShoot={this.handleSendShoot} />
         </div>
         <Chat />
@@ -256,7 +256,7 @@ class Game extends React.Component {
 }
 
 const mapStateToProps = ({
-  userData,
+  gamerData,
   opponentDataA,
   canShoot,
   gameStatus,
@@ -264,7 +264,7 @@ const mapStateToProps = ({
   shipsPlacement,
   roomId,
 }) => ({
-  userData,
+  gamerData,
   opponentData: opponentDataA,
   canShoot,
   gameStatus,
@@ -274,14 +274,14 @@ const mapStateToProps = ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  canUserShoot: bool => dispatch(canUserShoot(bool)),
+  canGamerShoot: bool => dispatch(canGamerShoot(bool)),
 
   restoreInitialTimer: () => dispatch(restoreInitialTimer()),
 
-  putCellToUserData: cell => dispatch(putCellToUserData(cell)),
-  putShipsCellToUserData: (shipIndex, cell) =>
-    dispatch(putShipsCellToUserData(shipIndex, cell)), //меняем флаг isDestroyed у одной ячейки корабля и у всего корабля
-  putShipToUserData: ship => dispatch(putShipToUserData(ship)), //меняем флаг isDestroyed у всего корабля
+  putCellToGamerData: cell => dispatch(putCellToGamerData(cell)),
+  putShipsCellToGamerData: (shipIndex, cell) =>
+    dispatch(putShipsCellToGamerData(shipIndex, cell)), //меняем флаг isDestroyed у одной ячейки корабля и у всего корабля
+  putShipToGamerData: ship => dispatch(putShipToGamerData(ship)), //меняем флаг isDestroyed у всего корабля
   putCellToOpponentData: (cell, hit) =>
     dispatch(putCellToOpponentData(cell, hit)),
   putShipToOpponentData: (index, ship) =>
@@ -299,7 +299,7 @@ const mapDispatchToProps = dispatch => ({
 });
 
 Game.propTypes = {
-  userData: PropTypes.shape({
+  gamerData: PropTypes.shape({
     ships: PropTypes.array.isRequired,
     busyCellsMatrix: PropTypes.array.isRequired,
   }).isRequired,
@@ -307,7 +307,7 @@ Game.propTypes = {
     ships: PropTypes.array.isRequired,
     busyCellsMatrix: PropTypes.array.isRequired,
   }).isRequired,
-  userShoot: PropTypes.bool,
+  gamerShoot: PropTypes.bool,
   gameStatus: PropTypes.bool.isRequired,
   socket: PropTypes.object.isRequired,
   runGame: PropTypes.func.isRequired,

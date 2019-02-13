@@ -12,7 +12,7 @@ import {
 } from '../../actions';
 
 import Chat from '../chat';
-import UserGrid from '../../components/user-grid';
+import GamerGrid from '../../components/gamer-grid';
 
 import phrases from '../../api/phrases';
 
@@ -39,7 +39,7 @@ class Game extends React.Component {
     setInfo(phrases.screen);
 
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.on(USER_HAS_WON, this.handleUserHasWon);
+    socket.on(USER_HAS_WON, this.handleGamerHasWon);
     socket.on(ALL_PLAYERS_CONNECTED, this.handleAllPlayersConnected);
 
     socket.on(RECEIVE_GAME_DATA, this.handleReceiveGameData);
@@ -61,7 +61,7 @@ class Game extends React.Component {
       RECEIVE_SHOOT_FEEDBACK,
       this.handleReceiveShootFeedback
     );
-    socket.removeEventListener(USER_HAS_WON, this.handleUserHasWon);
+    socket.removeEventListener(USER_HAS_WON, this.handleGamerHasWon);
     socket.removeEventListener(
       RECEIVE_DESTROYED_SHIP,
       this.handleReceiveDestroyedShip
@@ -130,7 +130,7 @@ class Game extends React.Component {
     }
   };
 
-  handleUserHasWon = data => {
+  handleGamerHasWon = data => {
     const { setInfo } = this.props;
     setInfo(`Игрок ${this.state.playersId[data.socketId]} проиграл`);
   };
@@ -151,11 +151,11 @@ class Game extends React.Component {
         </div>
         <div className="field">
           <div>
-            <UserGrid {...opponentDataA} />
+            <GamerGrid {...opponentDataA} />
             {'Игрок A'}
           </div>
           <div>
-            <UserGrid {...opponentDataB} />
+            <GamerGrid {...opponentDataB} />
             {'Игрок B'}
           </div>
         </div>

@@ -25,7 +25,7 @@ export const RESTORE_INITIAL_WINNER = 'RESTORE_INITIAL_WINNER';
 
 /*_________________ CAN SHOOT ACTIONS__________________ */
 
-export const canUserShoot = bool => ({
+export const canGamerShoot = bool => ({
   type: CAN_USER_SHOOT,
   bool,
 });
@@ -58,7 +58,7 @@ export const putShipToOpponentData = (index, ship, name = 'A') => ({
   name,
 });
 
-//if user is spectator
+//if gamer is spectator
 export const createReceivedOpponentData = (
   ships,
   busyCellsMatrix,
@@ -73,18 +73,18 @@ export const createReceivedOpponentData = (
 
 /*__________________ USER DATA ACTIONS_________________ */
 
-export const putCellToUserData = cell => ({
+export const putCellToGamerData = cell => ({
   type: PUT_CELL_TO_USER_DATA,
   cell,
 });
 
 
-export const putShipToUserData = ship => ({
+export const putShipToGamerData = ship => ({
   type: PUT_SHIP_TO_USER_DATA,
   ship,
 });
 
-export const putShipsCellToUserData = (index, cell) => ({
+export const putShipsCellToGamerData = (index, cell) => ({
   type: PUT_SHIPS_CELL_TO_USER_DATA,
   index,
   cell,
@@ -114,7 +114,7 @@ export const setInfo = phrase => ({
 
 export const determineWinner = bool => dispatch => {
   dispatch({ type: DETERMINE_WINNER, bool });
-  dispatch(canUserShoot(false));
+  dispatch(canGamerShoot(false));
 };
 
 export const createGameData = (ships, busyCellsMatrix) => dispatch => {

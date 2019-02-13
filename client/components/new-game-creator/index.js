@@ -8,7 +8,7 @@ class NewGameCreator extends React.Component {
   state = {
     ownGameClicked: false,
     randomGameClicked: false,
-    userTypeClicked: false,
+    gamerTypeClicked: false,
   };
   closeRandomGame = () => {
     //сбросить овердохрена всяких фитч, ливнуть из комнаты
@@ -34,7 +34,7 @@ class NewGameCreator extends React.Component {
     this.props.runOwnGame();
   };
   choosePlayerType = (playerType) => {
-    this.props.choosePlayerType(playerType); //TODO: плохое название, смени на user
+    this.props.choosePlayerType(playerType); //TODO: плохое название, смени на gamer
     this.setState({
       ownGameClicked: true,
     });
@@ -46,7 +46,7 @@ class NewGameCreator extends React.Component {
         return (
           <>
             <input
-              className="user-name"
+              className="gamer-name"
               type="text"
               placeholder="комната..."
               readOnly
@@ -100,7 +100,7 @@ class NewGameCreator extends React.Component {
   render() {
     return (
       <div className="new-game-creator">
-        <input className="user-name" type="text" placeholder="твоё имя..." />
+        <input className="gamer-name" type="text" placeholder="твоё имя..." />
         {this.showOwnGameForm()}
       </div>
     );
@@ -109,7 +109,7 @@ class NewGameCreator extends React.Component {
 /*
 export const NewGameCreator = ({ runGame }) => (
   <div className="new-game-creator">
-    <input className="user-name" type="text" placeholder="твоё имя..." />
+    <input className="gamer-name" type="text" placeholder="твоё имя..." />
     <div className="game-button" onClick={()=>runGame(true)}>случайная игра</div>
     <div className="game-button" onClick={()=>runGame(false)}>своя игра</div>
   </div>

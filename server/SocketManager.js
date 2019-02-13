@@ -108,19 +108,19 @@ module.exports = function(io) {
           });
       });
     }
-    function handleJoinOwnGame({ roomId, userType }) {
+    function handleJoinOwnGame({ roomId, gamerType }) {
       const roomIndex = ownRooms.findIndex(room => room.roomId === roomId);
       console.log('joined', roomId);
-      console.log('joined', userType);
+      console.log('joined', gamerType);
       console.log('ownRooms', ownRooms);
       console.log('ownRooms________________________');
-      if (roomIndex < 0 || ownRooms[roomIndex][userType].includes(socket.id)) {
+      if (roomIndex < 0 || ownRooms[roomIndex][gamerType].includes(socket.id)) {
         return false;
       }
-      ownRooms[roomIndex][userType].push(socket.id);
+      ownRooms[roomIndex][gamerType].push(socket.id);
       socket.join(roomId);
 
-      if (userType === 'players') {
+      if (gamerType === 'players') {
         if (!!ownRooms[roomIndex] && ownRooms[roomIndex].players.length === 2) {
           io.in(roomId).emit(ALL_PLAYERS_CONNECTED);
 
@@ -155,10 +155,10 @@ module.exports = function(io) {
         });
       } else {
         socket.on('disconnect', function() {
-          const userIndex = ownRooms[roomIndex][userType].findIndex(
-            userId => userId === socket.id
+          const gamerIndex = ownRooms[roomIndex][gamerType].findIndex(
+            gamerId => gamerId === socket.id
           );
-          ownRooms[roomIndex][userType].splice(userIndex, 1);
+          ownRooms[roomIndex][gamerType].splice(gamerIndex, 1);
           socket.leave(roomId);
         });
       }
@@ -178,15 +178,15 @@ module.exports = function(io) {
         ownRooms.splice(roomIndex, 1);
       }
     }
-    //TODO: userType
+    //TODO: gamerType
     function handleCloseOwnGame(payload) {
       console.log('rooms', ownRooms);
       const roomIndex = ownRooms.findIndex(
         room => room.roomId === payload.roomId
       );
       const clients = io.sockets.adapter.rooms[payload.roomId];
-      const userIndex = ownRooms[roomIndex].players.findIndex(
-        userId => userId === socket.id
+      const gamerIndex = ownRooms[roomIndex].players.findIndex(
+        gamerId => gamerId === socket.id
       );
       console.log('----');
       console.log(clients);
@@ -194,7 +194,7 @@ module.exports = function(io) {
         console.log('works');
         ownRooms.splice(roomIndex, 1);
       } else {
-        ownRooms[roomIndex].players.splice(userIndex, 1);
+        ownRooms[roomIndex].players.splice(gamerIndex, 1);
       }
       socket.leave(payload.roomId);
     }

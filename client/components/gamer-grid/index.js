@@ -14,7 +14,7 @@ import { hardClone } from '../../api/mainLogic';
 
 import './style.css';
 
-class UserGrid extends React.Component {
+class GamerGrid extends React.Component {
   constructor(props) {
     super(props);
     this.canvas = React.createRef();
@@ -52,9 +52,9 @@ class UserGrid extends React.Component {
   }
 }
 
-UserGrid.propTypes = {
+GamerGrid.propTypes = {
   ships: PropTypes.array.isRequired,
   busyCellsMatrix: PropTypes.array.isRequired,
 };
 
-export default UserGrid;
+export default GamerGrid;
