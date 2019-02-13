@@ -31,7 +31,7 @@ import {
 
 class Game extends React.Component {
   state = {
-    gamersId: {},
+    playersId: {},
   };
   componentDidMount() {
     const { socket, match, setInfo } = this.props;
@@ -51,18 +51,18 @@ class Game extends React.Component {
   }
   componentWillUnmount() {
     const { socket, match } = this.props;
-    socket.removeListener(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.removeListener(
+    socket.removeEventListener(OPPONENT_LEFT, this.handleOpponentLeft);
+    socket.removeEventListener(
       ALL_PLAYERS_CONNECTED,
       this.handleAllPlayersConnected
     );
-    socket.removeListener(RECEIVE_GAME_DATA, this.handleReceiveGameData);
-    socket.removeListener(
+    socket.removeEventListener(RECEIVE_GAME_DATA, this.handleReceiveGameData);
+    socket.removeEventListener(
       RECEIVE_SHOOT_FEEDBACK,
       this.handleReceiveShootFeedback
     );
-    socket.removeListener(USER_HAS_WON, this.handleUserHasWon);
-    socket.removeListener(
+    socket.removeEventListener(USER_HAS_WON, this.handleUserHasWon);
+    socket.removeEventListener(
       RECEIVE_DESTROYED_SHIP,
       this.handleReceiveDestroyedShip
     );
@@ -71,9 +71,9 @@ class Game extends React.Component {
     socket.emit(LEAVE_ROOM, { roomID: match.params.roomID }); //need to test
   }
   handleReceiveGameData = data => {
-    if (Object.entries(this.state.gamersId).length === 0) {
+    if (Object.entries(this.state.playersId).length === 0) {
       this.setState({
-        gamersId: {
+        playersId: {
           [data.socketId]: 'B',
         },
       });
@@ -84,8 +84,8 @@ class Game extends React.Component {
       );
     } else {
       this.setState({
-        gamersId: {
-          ...this.state.gamersId,
+        playersId: {
+          ...this.state.playersId,
           [data.socketId]: 'A',
         },
       });
@@ -102,13 +102,13 @@ class Game extends React.Component {
   handleReceiveShootFeedback = data => {
     const { putCellToOpponentData, setInfo } = this.props;
     if (!data.hit) {
-      setInfo(`Ходит Игрок ${this.state.gamersId[data.socketId]}`);
+      setInfo(`Ходит Игрок ${this.state.playersId[data.socketId]}`);
     }
 
     putCellToOpponentData(
       data.cell,
       data.hit,
-      this.state.gamersId[data.socketId]
+      this.state.playersId[data.socketId]
     );
   };
 
@@ -117,13 +117,13 @@ class Game extends React.Component {
     putShipToOpponentData(
       data.index,
       data.ship,
-      this.state.gamersId[data.socketId]
+      this.state.playersId[data.socketId]
     );
   };
   handleAllPlayersConnected = () => {
-    if (Object.entries(this.state.gamersId).length < 2) {
+    if (Object.entries(this.state.playersId).length < 2) {
       this.setState({
-        gamersId: {},
+        playersId: {},
       });
       const { socket, match } = this.props;
       socket.emit(REQUEST_GAME_DATA, match.params.roomID);
@@ -132,12 +132,12 @@ class Game extends React.Component {
 
   handleUserHasWon = data => {
     const { setInfo } = this.props;
-    setInfo(`Игрок ${this.state.gamersId[data.socketId]} проиграл`);
+    setInfo(`Игрок ${this.state.playersId[data.socketId]} проиграл`);
   };
 
   handleOpponentLeft = data => {
     const { setInfo } = this.props;
-    setInfo(`Игрок ${this.state.gamersId[data.socketId]} вышел`);
+    setInfo(`Игрок ${this.state.playersId[data.socketId]} вышел`);
   };
 
   render() {

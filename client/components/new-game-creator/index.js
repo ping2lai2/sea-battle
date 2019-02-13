@@ -4,40 +4,92 @@ import PropTypes from 'prop-types';
 
 import './style.css';
 
-
 class NewGameCreator extends React.Component {
   state = {
     ownGameClicked: false,
+    randomGameClicked: false,
+    userTypeClicked: false,
   };
+  closeRandomGame = () => {
+    //сбросить овердохрена всяких фитч, ливнуть из комнаты
+    this.props.closeRandomGame();
+    this.setState({
+      randomGameClicked: false,
+    });
+  };
+  closeOwnGame = () => {
+    //сбросить овердохрена всяких фитч, ливнуть из комнаты
+    this.props.closeOwnGame();
+    this.setState({
+      ownGameClicked: false,
+    });
+  };
+  runRandomGame = () => {
+    this.props.runRandomGame();
+    this.setState({
+      randomGameClicked: true,
+    });
+  };
+  runOwnGame = () => {
+    this.props.runOwnGame();
+  };
+  choosePlayerType = (playerType) => {
+    this.props.choosePlayerType(playerType); //TODO: плохое название, смени на user
+    this.setState({
+      ownGameClicked: true,
+    });
+  };
+
   showOwnGameForm = () => {
-    if (this.state.ownGameClicked) {
+    if (this.props.ownGame) {
+      if (this.state.ownGameClicked) {
+        return (
+          <>
+            <input
+              className="user-name"
+              type="text"
+              placeholder="комната..."
+              readOnly
+              value={this.props.roomId}
+            />
+            <div className="game-button" onClick={this.closeOwnGame}>
+              отмена
+            </div>
+          </>
+        );
+      } else {
+        return (
+          <>
+            <div className="game-types">
+              <div className="game-button" onClick={() => this.choosePlayerType('players')}>
+                игрок
+              </div>
+              <div className="game-button" onClick={() =>this.choosePlayerType('spectators')}>
+                зритель
+              </div>
+            </div>
+            <div className="game-button" onClick={this.props.deleteOwnRoom}>
+              отмена
+            </div>
+          </>
+        );
+      }
+    } else if (this.state.randomGameClicked) {
       return (
-        <>
-          <input
-            className="user-name"
-            type="text"
-            placeholder="номерок блатной"
-          />
-          <div className="game-button" onClick={() => this.props.runGame('own')}>
-            поехали
-          </div>
-          <div
-            className="game-button"
-            onClick={() => this.setState({ ownGameClicked: false })}
-          >
-            назад
-          </div>
-        </>
+        <div className="game-button" onClick={this.closeRandomGame}>
+          отмена
+        </div>
       );
     } else {
       return (
         <>
-          <div className="game-button" onClick={() => this.props.runGame('random')}>
+          <div className="game-button" onClick={this.runRandomGame}>
             случайная игра
           </div>
           <div
             className="game-button"
-            onClick={() => this.setState({ ownGameClicked: true })}
+            onClick={this.runOwnGame}
+            //onClick={() => this.setState({ ownGameClicked: true })}
           >
             своя игра
           </div>

@@ -8,7 +8,7 @@ import { timerReducer } from './timerReducer';
 import { gameInfoReducer } from './gameInfoReducer';
 import { winnerStatusReducer } from './winnerStatusReducer';
 import { gameStatusReducer } from './gameStatusReducer';
-import { gameTypeReducer } from './gameTypeReducer';
+import { roomIdReducer } from './roomIdReducer';
 import { createNamedWrapperReducer } from './hor';
 
 export const rootReducer = history =>
@@ -22,6 +22,6 @@ export const rootReducer = history =>
     gameInfo: gameInfoReducer,
     winnerStatus: winnerStatusReducer,
     gameStatus: gameStatusReducer,
-    gameType: gameTypeReducer,
+    roomId: roomIdReducer,
     router: connectRouter(history),
   });

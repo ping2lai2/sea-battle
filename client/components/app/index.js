@@ -6,6 +6,8 @@ import io from 'socket.io-client';
 import Lobby from '../../containers/lobby';
 import GameRoute from '../../containers/game-route';
 import GameInfo from '../../containers/game-info';
+import MainRoute from '../../components/main-route';
+import OwnRoute from '../../containers/own-route';
 
 import './style.css';
 
@@ -22,12 +24,12 @@ class App extends React.Component {
           <Route
             exact
             path="/"
-            render={(props) => <Lobby socket={socket} {...props} />}
+            render={(props) => <MainRoute socket={socket} {...props} />}
           />
           <Route
-            path="/:roomID"
+            path="/:roomId"
             render={(props, match) => (
-              <GameRoute socket={socket} {...match} {...props} />
+              <OwnRoute socket={socket} {...match} {...props} />
             )}
           />
         </Switch>

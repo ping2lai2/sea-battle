@@ -32,7 +32,7 @@ export const canUserShoot = bool => ({
 
 
 /*_________________ GAME ACTIONS_______________________ */
-
+//TODO: OPEN_GAME, CLOSE_GAME
 export const runGame = () => ({
   type: RUN_GAME,
 });
@@ -114,7 +114,6 @@ export const setInfo = phrase => ({
 
 export const determineWinner = bool => dispatch => {
   dispatch({ type: DETERMINE_WINNER, bool });
-  dispatch(disableGame());
   dispatch(canUserShoot(false));
 };
 

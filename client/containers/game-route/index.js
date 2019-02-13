@@ -25,7 +25,7 @@ class GameRoute extends React.Component {
   }
   componentWillUnmount() {
     const { socket } = this.props;
-    socket.removeListener(RECEIVE_GAME_ROLE, this.handleReceiveGameRole);
+    socket.removeEventListener(RECEIVE_GAME_ROLE, this.handleReceiveGameRole);
   }
   handleReceiveGameRole = data => {
     this.setState({ isGamer: data });

@@ -20,7 +20,7 @@ class Timer extends React.PureComponent {
         socket,
         canShoot,
         timer,
-        roomID,
+        roomId,
         determineWinner,
         decrementTimer,
         winnerStatus,
@@ -30,7 +30,7 @@ class Timer extends React.PureComponent {
         clearInterval(this.timer);
         if (canShoot) {
           setInfo(phrases.loose);
-          socket.emit(OPPONENT_HAS_WON, { roomID });
+          socket.emit(OPPONENT_HAS_WON, { roomId });
           determineWinner(false);
         }
       } else {

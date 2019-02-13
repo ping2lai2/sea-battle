@@ -15,6 +15,8 @@ import {
   setInfo,
   determineWinner,
   runGame,
+  disableGame,
+  createGameData,
 } from '../../actions';
 
 import Chat from '../chat';
@@ -29,7 +31,7 @@ import './style.css';
 import {
   OPPONENT_LEFT,
   ALL_PLAYERS_CONNECTED,
-  JOIN_GAME,
+  JOIN_RANDOM_GAME,
   USERS_TURN,
   SEND_SHOOT,
   SEND_DESTROYED_SHIP,
@@ -50,14 +52,16 @@ class Game extends React.Component {
   componentDidMount() {
     const {
       socket,
-      match,
       createGameData,
       shipsPlacement,
+      runGame,
+      setInfo,
     } = this.props;
-
     createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
+    setInfo(phrases.opponent);
+    runGame();
 
-    socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
+    // socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
     socket.on(USERS_TURN, this.handleUsersTurn);
     socket.on(RECEIVE_SHOOT, this.handleReceiveShoot);
@@ -65,26 +69,27 @@ class Game extends React.Component {
     socket.on(USER_HAS_WON, this.handleUserHasWon);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
     socket.on(GET_GAME_DATA, this.handleGetGameData);
-
-    socket.emit(JOIN_GAME, match.params.roomID);
   }
   componentWillUnmount() {
     const { socket } = this.props;
 
-    socket.removeListener(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
-    socket.removeListener(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.removeListener(USERS_TURN, this.handleUsersTurn);
-    socket.removeListener(RECEIVE_SHOOT, this.handleReceiveShoot);
-    socket.removeListener(
+    socket.removeEventListener(
+      ALL_PLAYERS_CONNECTED,
+      this.handlePlayersConnected
+    );
+    socket.removeEventListener(OPPONENT_LEFT, this.handleOpponentLeft);
+    socket.removeEventListener(USERS_TURN, this.handleUsersTurn);
+    socket.removeEventListener(RECEIVE_SHOOT, this.handleReceiveShoot);
+    socket.removeEventListener(
       RECEIVE_SHOOT_FEEDBACK,
       this.handleReceiveShootFeedback
     );
-    socket.removeListener(USER_HAS_WON, this.handleUserHasWon);
-    socket.removeListener(
+    socket.removeEventListener(USER_HAS_WON, this.handleUserHasWon);
+    socket.removeEventListener(
       RECEIVE_DESTROYED_SHIP,
       this.handleReceiveDestroyedShip
     );
-    socket.removeListener(GET_GAME_DATA, this.handleGetGameData);
+    socket.removeEventListener(GET_GAME_DATA, this.handleGetGameData);
   }
 
   handleUsersTurn = data => {
@@ -97,13 +102,14 @@ class Game extends React.Component {
   handleSendShoot = cell => {
     const {
       canShoot,
-      match,
       canUserShoot,
       restoreInitialTimer,
       socket,
+      roomId,
     } = this.props;
+    console.log(roomId);
     if (canShoot) {
-      socket.emit(SEND_SHOOT, { roomID: match.params.roomID, cell });
+      socket.emit(SEND_SHOOT, { roomId, cell });
       canUserShoot(false);
       restoreInitialTimer();
     }
@@ -113,9 +119,7 @@ class Game extends React.Component {
     const {
       userData,
       socket,
-      match: {
-        params: { roomID },
-      },
+      roomId,
       putShipsCellToUserData,
       putCellToUserData,
       determineWinner,
@@ -123,7 +127,7 @@ class Game extends React.Component {
       canUserShoot,
       setInfo,
     } = this.props;
-
+    console.log('received shoot')
     if (userData.busyCellsMatrix[cell.x][cell.y] === 5) {
       // индекс корабля, в который попали
       const shipIndex = userData.ships.findIndex(ship => {
@@ -137,10 +141,10 @@ class Game extends React.Component {
         socket.emit(SEND_DESTROYED_SHIP, {
           index: shipIndex,
           ship: newUserData.ships[shipIndex],
-          roomID,
+          roomId,
         });
         if (!newUserData.ships.some(ship => ship.isDestroyed === false)) {
-          socket.emit(OPPONENT_HAS_WON, { roomID });
+          socket.emit(OPPONENT_HAS_WON, { roomId });
           determineWinner(false);
           setInfo(phrases.loose);
         }
@@ -148,7 +152,7 @@ class Game extends React.Component {
         socket.emit(SEND_SHOOT_FEEDBACK, {
           cell,
           hit: true,
-          roomID,
+          roomId,
         });
         canUserShoot(false);
         setInfo(phrases.opponent);
@@ -157,7 +161,7 @@ class Game extends React.Component {
       socket.emit(SEND_SHOOT_FEEDBACK, {
         cell,
         hit: false,
-        roomID,
+        roomId,
       });
       canUserShoot(true);
       setInfo(phrases.user);
@@ -203,8 +207,8 @@ class Game extends React.Component {
   };
 
   handleOpponentLeft = () => {
-    const { setInfo, determineWinner, gameStatus } = this.props;
-    if (gameStatus) {
+    const { setInfo, determineWinner, winnerStatus } = this.props;
+    if (winnerStatus===null) {
       setInfo(phrases.disconnect);
       determineWinner(true);
     }
@@ -216,19 +220,19 @@ class Game extends React.Component {
       opponentData,
       socket,
       setInfo,
-      match,
-      gameStatus,
+      roomId,
       winnerStatus,
       determineWinner,
+      disableGame,
       canShoot,
     } = this.props;
     return (
       <div className="game">
         <div className="game-head">
-          {gameStatus ? (
+          {winnerStatus===null ? (
             <Timer
               socket={socket}
-              roomID={match.params.roomID}
+              roomId={roomId}
               winnerStatus={winnerStatus}
               setInfo={setInfo}
               canShoot={canShoot}
@@ -236,7 +240,7 @@ class Game extends React.Component {
               restoreInitialTimer={restoreInitialTimer}
             />
           ) : (
-            <Link className="return-button" to="/">
+            <Link className="return-button" to="/" onClick={disableGame}>
               назад
             </Link>
           )}
@@ -258,6 +262,7 @@ const mapStateToProps = ({
   gameStatus,
   winnerStatus,
   shipsPlacement,
+  roomId,
 }) => ({
   userData,
   opponentData: opponentDataA,
@@ -265,6 +270,7 @@ const mapStateToProps = ({
   gameStatus,
   winnerStatus,
   shipsPlacement,
+  roomId,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -281,11 +287,15 @@ const mapDispatchToProps = dispatch => ({
   putShipToOpponentData: (index, ship) =>
     dispatch(putShipToOpponentData(index, ship)),
 
+  createGameData: (ships, busyCellsMatrix) =>
+    dispatch(createGameData(ships, busyCellsMatrix)),
+
   setInfo: phrase => dispatch(setInfo(phrase)),
 
   determineWinner: bool => dispatch(determineWinner(bool)),
 
   runGame: () => dispatch(runGame()),
+  disableGame: () => dispatch(disableGame()),
 });
 
 Game.propTypes = {

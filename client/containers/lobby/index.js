@@ -13,9 +13,22 @@ import {
   changeShipPosition,
 } from '../../actions/shipsPlacement';
 
+import { setRoomId, resetRoomId } from '../../actions/roomId';
+
 import phrases from '../../api/phrases';
 
-import { RECEIVE_GAME_ROOM, FIND_ROOM } from '../../../common/socketEvents';
+import {
+  RECEIVE_OWN_ROOM,
+  RECEIVE_RANDOM_ROOM,
+  REQUEST_OWN_ROOM,
+  REQUEST_RANDOM_ROOM,
+  JOIN_RANDOM_GAME,
+  JOIN_OWN_GAME,
+  CLOSE_RANDOM_GAME,
+  CLOSE_OWN_GAME,
+  DELETE_OWN_ROOM,
+  CHOOSE_PLAYER_TYPE,
+} from '../../../common/socketEvents';
 
 import PlacementGrid from '../../components/placement-grid';
 import NewGameCreator from '../../components/new-game-creator';
@@ -27,37 +40,79 @@ class Lobby extends React.Component {
     super(props);
   }
   componentDidMount() {
-    const { socket, history, setInfo } = this.props;
+    const { socket, setInfo } = this.props;
     setInfo(phrases.init);
-    socket.on(RECEIVE_GAME_ROOM, gameRoom => {
-      history.push(`/${gameRoom}`);
-    });
+    socket.on(RECEIVE_OWN_ROOM, this.handleReceiveOwnRoom);
+    socket.on(RECEIVE_RANDOM_ROOM, this.handleReceiveRandomRoom);
   }
+  componentWillUnmount() {
+    const { socket } = this.props;
+    socket.removeEventListener(RECEIVE_OWN_ROOM, this.handleReceiveOwnRoom);
+    socket.removeEventListener(
+      RECEIVE_RANDOM_ROOM,
+      this.handleReceiveRandomRoom
+    );
+  }
+  handleReceiveOwnRoom = roomId => {
+    const { history, setRoomId } = this.props;
+    setRoomId(roomId);
+    console.log(this.props.roomId);
+    history.push(`/${roomId}`);
+  };
 
-  runGame = (gameType = true) => {
+  handleReceiveRandomRoom = roomId => {
+    const { setRoomId, setInfo, socket } = this.props;
+    setRoomId(roomId);
+    console.log('received', roomId);
+    setInfo(phrases.waitOpponent);
+    socket.emit(JOIN_RANDOM_GAME, { roomId });
+  };
+  deleteOwnRoom = () => {
+    const { socket, setInfo, resetRoomId, roomId, history } = this.props;
+    socket.emit(DELETE_OWN_ROOM, { roomId });
+    setInfo(phrases.init);
+    resetRoomId();
+    history.replace('/');
+  };
+  //TODO: некорректный нейминг, переименуй, ты только запрашиваешь комнату, а не запускаешь игру
+  runGame = req => {
     const { shipsPlacement, socket, setInfo } = this.props;
     if (
       !shipsPlacement.ships.includes(undefined) &&
       !shipsPlacement.ships.includes(null) //&& !shipsPlacement.ships.includes(null)
     ) {
-      switch (gameType) {
-      case 'random': {
-        socket.emit(FIND_ROOM);
-        //TODO: opponentData должна создаваться непосредственно в игре, иначе из-за персиста получаем смесь
-        setInfo(phrases.waitOpponent);
-        break;
-      }
-      case 'own': {
-        setInfo(phrases.waitOpponent);
-        break;
-      }
-      default: {
-        setInfo(phrases.init);
-      }
-      }
+      socket.emit(req);
+      return true;
     } else {
       setInfo(phrases.notPut);
+      return false;
     }
+  };
+  closeGame = req => {
+    const { socket, setInfo, resetRoomId, roomId } = this.props;
+    setInfo(phrases.init);
+    socket.emit(req, { roomId });
+    resetRoomId();
+  };
+  runRandomGame = () => {
+    this.runGame(REQUEST_RANDOM_ROOM);
+  };
+  runOwnGame = () => {
+    this.runGame(REQUEST_OWN_ROOM);
+  };
+  choosePlayerType = (userType) => {
+    const { socket, roomId, setInfo } = this.props;
+    setInfo(phrases.waitOpponent);
+    console.log(roomId);
+    socket.emit(JOIN_OWN_GAME, { roomId, userType });
+  };
+  closeRandomGame = () => {
+    this.closeGame(CLOSE_RANDOM_GAME);
+  };
+
+  closeOwnGame = () => {
+    this.closeGame(CLOSE_OWN_GAME);
+    this.props.history.replace('/');
   };
 
   render() {
@@ -68,6 +123,11 @@ class Lobby extends React.Component {
       addToBusyCells,
       removeFromBusyCells,
       changeShipPosition,
+      setRoomId,
+      resetRoomId,
+      roomId,
+      history,
+      ownGame,
     } = this.props;
     return (
       <div className="lobby">
@@ -82,15 +142,28 @@ class Lobby extends React.Component {
             changeShipPosition={changeShipPosition}
           />
 
-          <NewGameCreator runGame={this.runGame} />
+          <NewGameCreator
+            runRandomGame={this.runRandomGame}
+            runOwnGame={this.runOwnGame}
+            closeRandomGame={this.closeRandomGame}
+            closeOwnGame={this.closeOwnGame}
+            choosePlayerType={this.choosePlayerType}
+            deleteOwnRoom={this.deleteOwnRoom}
+            roomId={roomId}
+            setRoomId={setRoomId}
+            resetRoomId={resetRoomId}
+            history={history}
+            ownGame={ownGame}
+          />
         </div>
       </div>
     );
   }
 }
 
-const mapStateToProps = ({ shipsPlacement }) => ({
+const mapStateToProps = ({ shipsPlacement, roomId }) => ({
   shipsPlacement,
+  roomId,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -107,6 +180,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(recalculateShipsData(ships, busyCellsMatrix)),
 
   setInfo: phrase => dispatch(setInfo(phrase)),
+  setRoomId: roomId => dispatch(setRoomId(roomId)),
+  resetRoomId: () => dispatch(resetRoomId()),
 });
 
 Lobby.propTypes = {
