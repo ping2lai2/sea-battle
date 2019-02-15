@@ -8,7 +8,6 @@ class NewGameCreator extends React.Component {
   state = {
     ownGameClicked: false,
     randomGameClicked: false,
-    gamerTypeClicked: false,
   };
   closeRandomGame = () => {
     //сбросить овердохрена всяких фитч, ливнуть из комнаты
@@ -25,32 +24,42 @@ class NewGameCreator extends React.Component {
     });
   };
   runRandomGame = () => {
-    this.props.runRandomGame();
+    this.props.requestRandomRoom();
     this.setState({
       randomGameClicked: true,
     });
   };
   runOwnGame = () => {
-    this.props.runOwnGame();
+    this.props.requestOwnRoom();
   };
-  choosePlayerType = (playerType) => {
-    this.props.choosePlayerType(playerType); //TODO: плохое название, смени на gamer
+  joinOwnGame = () => {
     this.setState({
       ownGameClicked: true,
     });
+    this.props.joinOwnGame();
   };
-
+  handleFocus = (e) => e.target.select();
   showOwnGameForm = () => {
-    if (this.props.ownGame) {
-      if (this.state.ownGameClicked) {
+    const {
+      ownGame,
+      userData,
+      setPlayerType,
+      setSpectatorType,
+      deleteOwnRoom,
+    } = this.props;
+    const { ownGameClicked, randomGameClicked } = this.state;
+    if (ownGame) {
+      if (ownGameClicked) {
         return (
           <>
+            <span className="game-description">отправьте url друзьям:</span>
             <input
-              className="gamer-name"
+              className="game-input"
               type="text"
               placeholder="комната..."
               readOnly
-              value={this.props.roomId}
+              value={window.location.href}
+              onFocus={this.handleFocus}
             />
             <div className="game-button" onClick={this.closeOwnGame}>
               отмена
@@ -60,21 +69,47 @@ class NewGameCreator extends React.Component {
       } else {
         return (
           <>
+          <span className="game-description">отправьте url друзьям:</span>
+            <input
+              className="game-input"
+              type="text"
+              placeholder="комната..."
+              readOnly
+              value={window.location.href}
+              onFocus={this.handleFocus}
+            />
             <div className="game-types">
-              <div className="game-button" onClick={() => this.choosePlayerType('players')}>
+              <div
+                className={`game-types__element${
+                  userData.userType === 'players'
+                    ? ' game-types__element_choosed'
+                    : ''
+                }`}
+                onClick={setPlayerType}
+              >
                 игрок
               </div>
-              <div className="game-button" onClick={() =>this.choosePlayerType('spectators')}>
+              <div
+                className={`game-types__element${
+                  userData.userType === 'spectators'
+                    ? ' game-types__element_choosed'
+                    : ''
+                }`}
+                onClick={setSpectatorType}
+              >
                 зритель
               </div>
             </div>
-            <div className="game-button" onClick={this.props.deleteOwnRoom}>
+            <div className="game-button" onClick={this.joinOwnGame}>
+              вход
+            </div>
+            <div className="game-button" onClick={deleteOwnRoom}>
               отмена
             </div>
           </>
         );
       }
-    } else if (this.state.randomGameClicked) {
+    } else if (randomGameClicked) {
       return (
         <div className="game-button" onClick={this.closeRandomGame}>
           отмена
@@ -89,7 +124,6 @@ class NewGameCreator extends React.Component {
           <div
             className="game-button"
             onClick={this.runOwnGame}
-            //onClick={() => this.setState({ ownGameClicked: true })}
           >
             своя игра
           </div>
@@ -100,7 +134,7 @@ class NewGameCreator extends React.Component {
   render() {
     return (
       <div className="new-game-creator">
-        <input className="gamer-name" type="text" placeholder="твоё имя..." />
+        <input className="game-input" type="text" placeholder="твоё имя..." />
         {this.showOwnGameForm()}
       </div>
     );

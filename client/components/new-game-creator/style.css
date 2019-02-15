@@ -7,29 +7,61 @@
   box-sizing: border-box;
   width: 240px;
 }
-.gamer-name {
+.game-description {
+  display: inline-block;
+  margin: 0 0 10px 0;
+}
+.game-input {
   padding: 8px 5px;
   font-size: 16px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-weight: 200;
   width: 100%;
   box-sizing: border-box;
   border-radius: 2px;
   margin: 0 0 10px 0;
   border: 0;
-  background: #f6f6f6;
+  background: #f9f9f9;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
 }
 .game-types {
   display: flex;
   justify-content: space-between;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  border-radius: 2px;
+  overflow: hidden;
   align-items: center;
+  cursor: pointer;
+  margin: 0 0 10px 0;
+  &__element {
+    display: flex;
+    flex: 1 1;
+    padding: 8px 10px;
+    background: #fff;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    word-wrap: break-word;
+    &:hover {
+      background: #f2f2f2;
+    }
+    &_choosed {
+      background: rgba(50, 50, 150, 0.6);
+      box-shadow: 0 0 2px #000071;
+      color: #fff;
+      &:hover {
+        background: rgba(50, 50, 150, 0.75);
+      }
+    }
+  }
 }
 .game-button {
-  gamer-select: none;
+  user-select: none;
   border-radius: 2px;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
   box-sizing: border-box;
   display: flex;
-  padding: 0 10px;
+  padding: 8px 10px;
   margin: 0 0 10px 0;
   height: 34px;
   background: #fff;
@@ -39,9 +71,6 @@
   text-align: center;
   word-wrap: break-word;
   &:hover {
-    background: #f5f5f5;
+    background: #f2f2f2;
   }
-}
-.game-types > .game-button {
-  width: 46%;
 }

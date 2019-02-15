@@ -1,14 +1,41 @@
-import { RESET_ROOM_ID, SET_ROOM_ID } from '../actions/roomId';
+import {
+  RESET_ROOM_ID,
+  SET_ROOM_ID,
+  SET_PLAYER_TYPE,
+  SET_SPECTATOR_TYPE,
+} from '../actions/userData';
 
-const initialState = null;
+//const initialState = null;
 
+const initialState = {
+  roomId: null,
+  userType: 'players',
+};
 export const userDataReducer = (state = initialState, action) => {
   switch (action.type) {
   case SET_ROOM_ID: {
-    return action.roomId;
+    return {
+      ...state,
+      roomId: action.roomId,
+    };
   }
   case RESET_ROOM_ID: {
-    return initialState;
+    return {
+      ...state,
+      roomId: initialState.roomId,
+    };
+  }
+  case SET_PLAYER_TYPE: {
+    return {
+      ...state,
+      userType: 'players',
+    };
+  }
+  case SET_SPECTATOR_TYPE: {
+    return {
+      ...state,
+      userType: 'spectators',
+    };
   }
   default:
     return state;

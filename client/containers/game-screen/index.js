@@ -25,7 +25,7 @@ import {
   RECEIVE_GAME_DATA,
   RECEIVE_DESTROYED_SHIP,
   RECEIVE_SHOOT_FEEDBACK,
-  USER_HAS_WON,
+  GAMER_HAS_WON,
   LEAVE_ROOM,
 } from '../../../common/socketEvents';
 
@@ -39,7 +39,7 @@ class Game extends React.Component {
     setInfo(phrases.screen);
 
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
-    socket.on(USER_HAS_WON, this.handleGamerHasWon);
+    socket.on(GAMER_HAS_WON, this.handleGamerHasWon);
     socket.on(ALL_PLAYERS_CONNECTED, this.handleAllPlayersConnected);
 
     socket.on(RECEIVE_GAME_DATA, this.handleReceiveGameData);
@@ -61,7 +61,7 @@ class Game extends React.Component {
       RECEIVE_SHOOT_FEEDBACK,
       this.handleReceiveShootFeedback
     );
-    socket.removeEventListener(USER_HAS_WON, this.handleGamerHasWon);
+    socket.removeEventListener(GAMER_HAS_WON, this.handleGamerHasWon);
     socket.removeEventListener(
       RECEIVE_DESTROYED_SHIP,
       this.handleReceiveDestroyedShip

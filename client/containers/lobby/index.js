@@ -13,7 +13,12 @@ import {
   changeShipPosition,
 } from '../../actions/shipsPlacement';
 
-import { setRoomId, resetRoomId } from '../../actions/roomId';
+import {
+  setRoomId,
+  resetRoomId,
+  setPlayerType,
+  setSpectatorType,
+} from '../../actions/userData';
 
 import phrases from '../../api/phrases';
 
@@ -56,7 +61,6 @@ class Lobby extends React.Component {
   handleReceiveOwnRoom = roomId => {
     const { history, setRoomId } = this.props;
     setRoomId(roomId);
-    console.log(this.props.roomId);
     history.push(`/${roomId}`);
   };
 
@@ -68,14 +72,14 @@ class Lobby extends React.Component {
     socket.emit(JOIN_RANDOM_GAME, { roomId });
   };
   deleteOwnRoom = () => {
-    const { socket, setInfo, resetRoomId, roomId, history } = this.props;
-    socket.emit(DELETE_OWN_ROOM, { roomId });
+    const { socket, setInfo, resetRoomId, userData, history } = this.props;
+    socket.emit(DELETE_OWN_ROOM, { roomId: userData.roomId });
     setInfo(phrases.init);
     resetRoomId();
     history.replace('/');
   };
   //TODO: некорректный нейминг, переименуй, ты только запрашиваешь комнату, а не запускаешь игру
-  runGame = req => {
+  requestRoom = req => {
     const { shipsPlacement, socket, setInfo } = this.props;
     if (
       !shipsPlacement.ships.includes(undefined) &&
@@ -89,22 +93,23 @@ class Lobby extends React.Component {
     }
   };
   closeGame = req => {
-    const { socket, setInfo, resetRoomId, roomId } = this.props;
+    const { socket, setInfo, resetRoomId, userData } = this.props;
     setInfo(phrases.init);
-    socket.emit(req, { roomId });
+    socket.emit(req, { roomId: userData.roomId });
     resetRoomId();
   };
-  runRandomGame = () => {
-    this.runGame(REQUEST_RANDOM_ROOM);
+  //TODO: плохие названия
+  requestRandomRoom = () => {
+    this.requestRoom(REQUEST_RANDOM_ROOM);
   };
-  runOwnGame = () => {
-    this.runGame(REQUEST_OWN_ROOM);
+  requestOwnRoom = () => {
+    this.requestRoom(REQUEST_OWN_ROOM);
   };
-  choosePlayerType = (gamerType) => {
-    const { socket, roomId, setInfo } = this.props;
+
+  joinOwnGame = () => {
+    const { socket, userData, setInfo } = this.props;
     setInfo(phrases.waitOpponent);
-    console.log(roomId);
-    socket.emit(JOIN_OWN_GAME, { roomId, gamerType });
+    socket.emit(JOIN_OWN_GAME, userData);
   };
   closeRandomGame = () => {
     this.closeGame(CLOSE_RANDOM_GAME);
@@ -125,9 +130,11 @@ class Lobby extends React.Component {
       changeShipPosition,
       setRoomId,
       resetRoomId,
-      roomId,
+      userData,
       history,
       ownGame,
+      setPlayerType,
+      setSpectatorType,
     } = this.props;
     return (
       <div className="lobby">
@@ -143,17 +150,19 @@ class Lobby extends React.Component {
           />
 
           <NewGameCreator
-            runRandomGame={this.runRandomGame}
-            runOwnGame={this.runOwnGame}
+            requestRandomRoom={this.requestRandomRoom}
+            requestOwnRoom={this.requestOwnRoom}
             closeRandomGame={this.closeRandomGame}
             closeOwnGame={this.closeOwnGame}
-            choosePlayerType={this.choosePlayerType}
+            joinOwnGame={this.joinOwnGame}
             deleteOwnRoom={this.deleteOwnRoom}
-            roomId={roomId}
+            userData={userData}
             setRoomId={setRoomId}
             resetRoomId={resetRoomId}
             history={history}
             ownGame={ownGame}
+            setPlayerType={setPlayerType}
+            setSpectatorType={setSpectatorType}
           />
         </div>
       </div>
@@ -161,9 +170,9 @@ class Lobby extends React.Component {
   }
 }
 
-const mapStateToProps = ({ shipsPlacement, roomId }) => ({
+const mapStateToProps = ({ shipsPlacement, userData }) => ({
   shipsPlacement,
-  roomId,
+  userData,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -182,6 +191,8 @@ const mapDispatchToProps = dispatch => ({
   setInfo: phrase => dispatch(setInfo(phrase)),
   setRoomId: roomId => dispatch(setRoomId(roomId)),
   resetRoomId: () => dispatch(resetRoomId()),
+  setPlayerType: () => dispatch(setPlayerType()),
+  setSpectatorType: () => dispatch(setSpectatorType()),
 });
 
 Lobby.propTypes = {

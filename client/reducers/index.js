@@ -22,6 +22,6 @@ export const rootReducer = history =>
     gameInfo: gameInfoReducer,
     winnerStatus: winnerStatusReducer,
     gameStatus: gameStatusReducer,
-    roomId: userDataReducer,
+    userData: userDataReducer,
     router: connectRouter(history),
   });

@@ -9,7 +9,7 @@ import {
   REQUEST_CHECK_ROOM,
 } from '../../../common/socketEvents';
 
-import { setRoomId } from '../../actions/roomId';
+import { setRoomId } from '../../actions/userData';
 
 class OwnRoute extends React.Component {
   componentDidMount() {
@@ -29,7 +29,6 @@ console.log(match.params.roomId);
     socket.removeEventListener(RECEIVE_CHECK_ROOM, this.handleReceiveCheckRoom);
   }
   handleReceiveCheckRoom = data => {
-    console.log(data);
     if (data.checked) {
       this.props.setRoomId(data.roomId);
     } else {

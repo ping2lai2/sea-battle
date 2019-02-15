@@ -23,7 +23,7 @@ const {
   SEND_DESTROYED_SHIP,
   RECEIVE_DESTROYED_SHIP,
   OPPONENT_HAS_WON,
-  USER_HAS_WON,
+  GAMER_HAS_WON,
   SEND_MESSAGE,
   RECEIVE_MESSAGE,
   ALL_PLAYERS_CONNECTED,
@@ -34,7 +34,10 @@ const {
   GET_GAME_DATA,
   POST_GAME_DATA,
   LEAVE_ROOM,
-  CHOOSE_PLAYER_TYPE,
+
+  GAME_IS_ALREADY_RUNNING,
+  RECEIVE_USERS_COUNT,
+
 } = require('../common/socketEvents');
 
 const uuidv4 = require('uuid/v4');
@@ -71,7 +74,7 @@ module.exports = function(io) {
       console.log('rooms', ownRooms);
       const roomId = uuidv4();
       socket.emit(RECEIVE_OWN_ROOM, roomId);
-      ownRooms.push({ roomId, players: [], spectators: [] });
+      ownRooms.push({ roomId, players: [], spectators: [], gameIsRun: false });
     }
     function handleRequestRandomRoom() {
       let roomId = openedRandomRoomsBuffer[0];
@@ -108,57 +111,86 @@ module.exports = function(io) {
           });
       });
     }
-    function handleJoinOwnGame({ roomId, gamerType }) {
+    function handleJoinOwnGame({ roomId, userType }) {
       const roomIndex = ownRooms.findIndex(room => room.roomId === roomId);
-      console.log('joined', roomId);
-      console.log('joined', gamerType);
-      console.log('ownRooms', ownRooms);
-      console.log('ownRooms________________________');
-      if (roomIndex < 0 || ownRooms[roomIndex][gamerType].includes(socket.id)) {
+      const currentRoom = ownRooms[roomIndex];
+      console.log('joined to', roomId);
+      console.log('userType ', userType);
+      console.log('ownRooms ', ownRooms);
+      console.log('________________________');
+      if (roomIndex < 0) {
+        socket.emit(RECEIVE_CHECK_ROOM, {
+          roomId: roomId,
+          checked: false,
+        });
         return false;
       }
-      ownRooms[roomIndex][gamerType].push(socket.id);
+      if (currentRoom[userType].includes(socket.id)) {
+        return false;
+      }
+
       socket.join(roomId);
 
-      if (gamerType === 'players') {
-        if (!!ownRooms[roomIndex] && ownRooms[roomIndex].players.length === 2) {
-          io.in(roomId).emit(ALL_PLAYERS_CONNECTED);
+      if (userType === 'players') {
+        if (currentRoom.gameIsRun) {
+          //TODO: смени
+          //game is running
+          socket.emit(GAME_IS_ALREADY_RUNNING, {
+            roomId: roomId,
+          });
+          return false;
+        } else {
+          currentRoom.players.push(socket.id);
+          io.in(roomId).emit(RECEIVE_USERS_COUNT, {
+            playersCount: currentRoom.players.length,
+            spectatorsCount: currentRoom.spectators.length,
+          });
+          if (currentRoom.players.length === 2) {
+            io.in(roomId).emit(ALL_PLAYERS_CONNECTED);
 
-          const first = ownRooms[roomIndex].players[1 - defineFirst()];
-          io.in(roomId).emit(USERS_TURN, { socketId: first }); //TODO: main-route
-        }
-        console.log('socket   ', socket.id);
-        socket.on('disconnect', function _listener() {
-          /* он отчитывается за прошлый обработчик событий,  */
-          console.log('roomid---', roomId);
-          const roomIndex = ownRooms.findIndex(room => room.roomId === roomId);
-          console.log('roomIndex ---', roomIndex);
-          socket.broadcast
-            .to(roomId)
-            .emit(OPPONENT_LEFT, { socketId: socket.id });
-          io.of('/')
-            .in(roomId)
-            .clients((error, socketIds) => {
-              if (error) throw error;
-              console.log(socketIds);
-              socketIds.forEach(socketId => {
-                console.log('socketId1111   ', socketId);
-                io.sockets.sockets[socketId].leave(roomId);
-              });
-            });
-          if (roomIndex >= 0) {
-            ownRooms.splice(roomIndex, 1);
+            const first = currentRoom.players[1 - defineFirst()];
+            io.in(roomId).emit(USERS_TURN, { socketId: first }); //TODO: main-route
           }
-
-
-          //socket.removeListener('disconnect', _listener);
-        });
+          socket.on(
+            'disconnect',
+            function() {
+              /* он отчитывается за прошлый обработчик событий,  */
+              console.log('roomid---', roomId);
+              const roomIndex = ownRooms.findIndex(
+                room => room.roomId === roomId
+              );
+              console.log('roomIndex ---', roomIndex);
+              socket.broadcast
+                .to(roomId)
+                .emit(OPPONENT_LEFT, { socketId: socket.id });
+              io.of('/')
+                .in(roomId)
+                .clients((error, socketIds) => {
+                  if (error) throw error;
+                  console.log(socketIds);
+                  socketIds.forEach(socketId => {
+                    console.log('socketId1111   ', socketId);
+                    io.sockets.sockets[socketId].leave(roomId);
+                  });
+                });
+              if (roomIndex >= 0) {
+                ownRooms.splice(roomIndex, 1);
+              }
+            }
+            //socket.removeListener('disconnect', _listener);
+          );
+        }
       } else {
+        currentRoom.spectators.push(socket.id);
+        io.in(roomId).emit(RECEIVE_USERS_COUNT, {
+          playersCount: currentRoom.players.length,
+          spectatorsCount: currentRoom.spectators.length,
+        });
         socket.on('disconnect', function() {
-          const gamerIndex = ownRooms[roomIndex][gamerType].findIndex(
+          const gamerIndex = currentRoom[userType].findIndex(
             gamerId => gamerId === socket.id
           );
-          ownRooms[roomIndex][gamerType].splice(gamerIndex, 1);
+          currentRoom[userType].splice(gamerIndex, 1);
           socket.leave(roomId);
         });
       }
@@ -178,12 +210,20 @@ module.exports = function(io) {
         ownRooms.splice(roomIndex, 1);
       }
     }
-    //TODO: gamerType
+    //TODO: userType
+    //TODO: выбрать тип геймер можно и после начала игры
     function handleCloseOwnGame(payload) {
       console.log('rooms', ownRooms);
       const roomIndex = ownRooms.findIndex(
         room => room.roomId === payload.roomId
       );
+      if (roomIndex < 0) {
+        socket.emit(RECEIVE_CHECK_ROOM, {
+          roomId: payload.roomId,
+          checked: false,
+        });
+        return false;
+      }
       const clients = io.sockets.adapter.rooms[payload.roomId];
       const gamerIndex = ownRooms[roomIndex].players.findIndex(
         gamerId => gamerId === socket.id
@@ -214,9 +254,14 @@ module.exports = function(io) {
           checked: false,
         });
       } else {
+        const currentRoom = ownRooms[roomIndex];
         socket.emit(RECEIVE_CHECK_ROOM, {
           roomId: payload.roomId,
           checked: true,
+        });
+        socket.emit(RECEIVE_USERS_COUNT, {
+          playersCount: currentRoom.players.length,
+          spectatorsCount: currentRoom.spectators.length,
         });
       }
     }
@@ -259,7 +304,7 @@ module.exports = function(io) {
     function handleOpponentWinning(payload) {
       socket.broadcast
         .to(payload.roomId)
-        .emit(USER_HAS_WON, { socketId: socket.id });
+        .emit(GAMER_HAS_WON, { socketId: socket.id });
       io.of('/')
         .in(payload.roomId)
         .clients((error, socketIds) => {
