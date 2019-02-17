@@ -1,15 +1,14 @@
 {
-  "name": "antidaseabattle",
+  "name": "sea-battle",
   "version": "1.0.0",
-  "description": "Finished task for antida",
+  "author": "Evgeniy Kazak <kazakzhenya10@gmail.com>",
+  "license": "ISC",
   "scripts": {
     "start": "node server/index.js",
     "dev": "webpack-dev-server --open --config webpack.dev.js --mode development",
     "build": "webpack --config webpack.prod.js --mode production",
     "server": "nodemon server/index.js"
   },
-  "author": "Kazak&Boroda",
-  "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.2.2",
     "@babel/plugin-proposal-class-properties": "^7.2.3",
@@ -43,7 +42,7 @@
     "url-loader": "^1.1.2",
     "webpack": "^4.28.0",
     "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "3.1.10",
+    "webpack-dev-server": "^3.1.10",
     "webpack-merge": "^4.1.5"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
-# AntidaSeaBattle
+# SeaBattle
 
-[antida-sea-battle.herokuapp.com](https://antida-sea-battle.herokuapp.com/)
+[sea-battle.herokuapp.com](https://sea-battle.herokuapp.com/)
 
 $ npm run server
 
