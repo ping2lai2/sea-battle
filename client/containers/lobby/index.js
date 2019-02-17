@@ -124,6 +124,7 @@ class Lobby extends React.Component {
     this.setState({
       randomGameSelected: true,
     });
+    this.props.setPlayerType();
   };
 
   requestOwnRoom = () => {
