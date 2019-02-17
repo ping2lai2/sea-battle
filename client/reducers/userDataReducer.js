@@ -3,9 +3,9 @@ import {
   SET_ROOM_ID,
   SET_PLAYER_TYPE,
   SET_SPECTATOR_TYPE,
-} from '../actions/userData';
+} from '../actions';
 
-//const initialState = null;
+
 
 const initialState = {
   roomId: null,

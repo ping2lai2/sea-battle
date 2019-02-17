@@ -1,8 +1,8 @@
 import {
-  CREATE_USER_DATA,
-  PUT_CELL_TO_USER_DATA,
-  PUT_SHIP_TO_USER_DATA,
-  PUT_SHIPS_CELL_TO_USER_DATA,
+  CREATE_GAMER_DATA,
+  PUT_CELL_TO_GAMER_DATA,
+  PUT_SHIP_TO_GAMER_DATA,
+  PUT_SHIPS_CELL_TO_GAMER_DATA,
 } from '../actions';
 
 const initialState = {
@@ -12,7 +12,7 @@ const initialState = {
 
 export const gamerDataReducer = (state = initialState, action) => {
   switch (action.type) {
-  case CREATE_USER_DATA: {
+  case CREATE_GAMER_DATA: {
     return {
       ...state,
       ships: action.ships.map(ship => ({
@@ -24,7 +24,7 @@ export const gamerDataReducer = (state = initialState, action) => {
       busyCellsMatrix: action.busyCellsMatrix.map(row => [...row]),
     };
   }
-  case PUT_CELL_TO_USER_DATA: {
+  case PUT_CELL_TO_GAMER_DATA: {
     return {
       ...state,
       busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
@@ -37,8 +37,7 @@ export const gamerDataReducer = (state = initialState, action) => {
       ),
     };
   }
-  case PUT_SHIPS_CELL_TO_USER_DATA: {
-
+  case PUT_SHIPS_CELL_TO_GAMER_DATA: {
     const ships = [...state.ships];
     let shipIsDestroyed = true;
     const currentShip = state.ships[action.index];
@@ -58,7 +57,8 @@ export const gamerDataReducer = (state = initialState, action) => {
     if (shipIsDestroyed) {
       const busyX = returnedShip.busyCellsX;
       const busyY = returnedShip.busyCellsY;
-
+      const coordsMin = returnedShip.coordinates[0]; //лево-верх (x, y, isDestroyed)
+      const coordsMax = returnedShip.coordinates[returnedShip.length - 1]; //право-низ
       return {
         ...state,
         ships: [
@@ -83,7 +83,16 @@ export const gamerDataReducer = (state = initialState, action) => {
                 j >= busyY[0] &&
                 j <= busyY[1]
             ) {
-              cell = cell <= 4 ? 7 : cell;
+              if (
+                i >= coordsMin.x &&
+                  i <= coordsMax.x &&
+                  j >= coordsMin.y &&
+                  j <= coordsMax.y
+              ) {
+                cell = 8;
+              } else {
+                cell = cell <= 4 ? 7 : cell;
+              }
             }
             return cell;
           })
@@ -105,10 +114,18 @@ export const gamerDataReducer = (state = initialState, action) => {
           },
           ...ships.slice(action.index + 1),
         ],
+        busyCellsMatrix: state.busyCellsMatrix.map((row, i) =>
+          row.map((cell, j) => {
+            if (action.cell.x === i && action.cell.y === j) {
+              cell = cell === 5 ? 8 : 6;
+            }
+            return cell;
+          })
+        ),
       };
     }
   }
-  case PUT_SHIP_TO_USER_DATA: {
+  case PUT_SHIP_TO_GAMER_DATA: {
     return {
       ...state,
     };

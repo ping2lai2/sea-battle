@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { decrementTimer} from '../../actions';
+import { decrementTimer } from '../../actions';
 import phrases from '../../api/phrases';
 
 import { OPPONENT_HAS_WON } from '../../../common/socketEvents';
@@ -14,7 +14,7 @@ class Timer extends React.PureComponent {
     this.timer = null;
   }
   componentDidMount() {
-    this.props.restoreInitialTimer();
+    this.props.resetTimer();
     const decrementTimerWrap = () => {
       const {
         socket,
@@ -51,9 +51,7 @@ class Timer extends React.PureComponent {
     return <div className="timer">{this.props.timer}</div>;
   }
 }
-const mapStateToProps = ({ timer }) => ({
-  ...timer,
-});
+const mapStateToProps = ({timer}) => timer;
 
 const mapDispatchToProps = dispatch => ({
   decrementTimer: time => dispatch(decrementTimer(time)),
@@ -66,9 +64,9 @@ Timer.propTypes = {
   timer: PropTypes.number.isRequired,
   canShoot: PropTypes.bool.isRequired,
   socket: PropTypes.object.isRequired,
-  roomID: PropTypes.string.isRequired,
+  roomId: PropTypes.string.isRequired,
   winnerStatus: PropTypes.bool,
-  restoreInitialTimer: PropTypes.func.isRequired,
+  resetTimer: PropTypes.func.isRequired,
 };
 
 export default connect(

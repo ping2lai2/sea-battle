@@ -6,10 +6,19 @@
   padding: 20px 10px;
   box-sizing: border-box;
   width: 240px;
+  overflow: hidden;
 }
+
 .game-description {
   display: inline-block;
   margin: 0 0 10px 0;
+}
+.game-title {
+  margin: 0 0 25px 0;
+  font-size: 18px;
+  font-weight: 300;
+  text-align: center;
+  display: block;
 }
 .game-input {
   padding: 8px 5px;
@@ -36,7 +45,8 @@
   &__element {
     display: flex;
     flex: 1 1;
-    padding: 8px 10px;
+    padding: 0 4px;
+    height: 34px;
     background: #fff;
     justify-content: center;
     align-items: center;

@@ -5,15 +5,10 @@ const {
   REQUEST_OWN_ROOM,
   JOIN_RANDOM_GAME,
   JOIN_OWN_GAME,
-
   CLOSE_RANDOM_GAME,
   CLOSE_OWN_GAME,
-
   REQUEST_CHECK_ROOM,
   RECEIVE_CHECK_ROOM,
-
-  DELETE_OWN_ROOM,
-
   OPPONENT_LEFT,
   USERS_TURN,
   SEND_SHOOT,
@@ -27,17 +22,16 @@ const {
   SEND_MESSAGE,
   RECEIVE_MESSAGE,
   ALL_PLAYERS_CONNECTED,
-  REQUEST_GAME_ROLE,
-  RECEIVE_GAME_ROLE,
   REQUEST_GAME_DATA,
   RECEIVE_GAME_DATA,
   GET_GAME_DATA,
   POST_GAME_DATA,
+  GREETINGS_TO_ALL,
+  RECEIVE_GREETING,
   LEAVE_ROOM,
 
   GAME_IS_ALREADY_RUNNING,
   RECEIVE_USERS_COUNT,
-
 } = require('../common/socketEvents');
 
 const uuidv4 = require('uuid/v4');
@@ -45,7 +39,7 @@ const uuidv4 = require('uuid/v4');
 const openedRandomRoomsBuffer = [];
 const ownRooms = [];
 const randomRooms = [];
-//TODO: all event handlers will have  payload!
+
 module.exports = function(io) {
   io.on('connection', function(socket) {
     socket.on(REQUEST_RANDOM_ROOM, handleRequestRandomRoom);
@@ -55,11 +49,9 @@ module.exports = function(io) {
 
     socket.on(JOIN_RANDOM_GAME, handleJoinRandomGame);
     socket.on(JOIN_OWN_GAME, handleJoinOwnGame);
-    //socket.on(CHOOSE_PLAYER_TYPE, handleLeaveRoom);
 
     socket.on(CLOSE_RANDOM_GAME, handleCloseRandomGame);
     socket.on(CLOSE_OWN_GAME, handleCloseOwnGame);
-    socket.on(DELETE_OWN_ROOM, handleDeleteOwnRoom);
 
     socket.on(SEND_SHOOT, handleSendShoot);
     socket.on(SEND_SHOOT_FEEDBACK, handleSendShootFeedback);
@@ -68,10 +60,10 @@ module.exports = function(io) {
     socket.on(SEND_MESSAGE, handleReceiveMessage);
     socket.on(REQUEST_GAME_DATA, handleRequestGameData);
     socket.on(POST_GAME_DATA, handlePostGameData);
+    socket.on(GREETINGS_TO_ALL, handleGreetingToAll);
     socket.on(LEAVE_ROOM, handleLeaveRoom);
 
     function handleRequestOwnRoom() {
-      console.log('rooms', ownRooms);
       const roomId = uuidv4();
       socket.emit(RECEIVE_OWN_ROOM, roomId);
       ownRooms.push({ roomId, players: [], spectators: [], gameIsRun: false });
@@ -92,10 +84,10 @@ module.exports = function(io) {
       socket.join(payload.roomId);
       const clients = io.sockets.adapter.rooms[payload.roomId];
       if (clients.length === 2) {
-        io.in(payload.roomId).emit(ALL_PLAYERS_CONNECTED); // получившие эту запись являются игроками
+        io.in(payload.roomId).emit(ALL_PLAYERS_CONNECTED);
         openedRandomRoomsBuffer.shift();
         const first = Object.keys(clients.sockets)[1 - defineFirst()];
-        io.in(payload.roomId).emit(USERS_TURN, { socketId: first }); //TODO: main-route
+        io.in(payload.roomId).emit(USERS_TURN, { socketId: first });
       }
       socket.on('disconnect', function() {
         socket.broadcast
@@ -111,13 +103,10 @@ module.exports = function(io) {
           });
       });
     }
-    function handleJoinOwnGame({ roomId, userType }) {
+    function handleJoinOwnGame(payload) {
+      const { roomId, userType } = payload;
       const roomIndex = ownRooms.findIndex(room => room.roomId === roomId);
       const currentRoom = ownRooms[roomIndex];
-      console.log('joined to', roomId);
-      console.log('userType ', userType);
-      console.log('ownRooms ', ownRooms);
-      console.log('________________________');
       if (roomIndex < 0) {
         socket.emit(RECEIVE_CHECK_ROOM, {
           roomId: roomId,
@@ -129,17 +118,16 @@ module.exports = function(io) {
         return false;
       }
 
-      socket.join(roomId);
-
       if (userType === 'players') {
         if (currentRoom.gameIsRun) {
-          //TODO: смени
           //game is running
           socket.emit(GAME_IS_ALREADY_RUNNING, {
-            roomId: roomId,
+            roomId,
+            userType,
           });
           return false;
         } else {
+          socket.join(roomId);
           currentRoom.players.push(socket.id);
           io.in(roomId).emit(RECEIVE_USERS_COUNT, {
             playersCount: currentRoom.players.length,
@@ -147,19 +135,16 @@ module.exports = function(io) {
           });
           if (currentRoom.players.length === 2) {
             io.in(roomId).emit(ALL_PLAYERS_CONNECTED);
-
+            currentRoom.gameIsRun = true;
             const first = currentRoom.players[1 - defineFirst()];
-            io.in(roomId).emit(USERS_TURN, { socketId: first }); //TODO: main-route
+            io.in(roomId).emit(USERS_TURN, { socketId: first });
           }
           socket.on(
             'disconnect',
             function() {
-              /* он отчитывается за прошлый обработчик событий,  */
-              console.log('roomid---', roomId);
               const roomIndex = ownRooms.findIndex(
                 room => room.roomId === roomId
               );
-              console.log('roomIndex ---', roomIndex);
               socket.broadcast
                 .to(roomId)
                 .emit(OPPONENT_LEFT, { socketId: socket.id });
@@ -167,13 +152,11 @@ module.exports = function(io) {
                 .in(roomId)
                 .clients((error, socketIds) => {
                   if (error) throw error;
-                  console.log(socketIds);
                   socketIds.forEach(socketId => {
-                    console.log('socketId1111   ', socketId);
                     io.sockets.sockets[socketId].leave(roomId);
                   });
                 });
-              if (roomIndex >= 0) {
+              if (roomIndex > -1) {
                 ownRooms.splice(roomIndex, 1);
               }
             }
@@ -181,17 +164,25 @@ module.exports = function(io) {
           );
         }
       } else {
+        socket.join(roomId);
         currentRoom.spectators.push(socket.id);
         io.in(roomId).emit(RECEIVE_USERS_COUNT, {
           playersCount: currentRoom.players.length,
           spectatorsCount: currentRoom.spectators.length,
         });
+        if (currentRoom.gameIsRun) {
+          //game is running
+          socket.emit(GAME_IS_ALREADY_RUNNING, {
+            roomId,
+            userType,
+          });
+        }
         socket.on('disconnect', function() {
           const gamerIndex = currentRoom[userType].findIndex(
             gamerId => gamerId === socket.id
           );
           currentRoom[userType].splice(gamerIndex, 1);
-          socket.leave(roomId);
+          //socket.leave(roomId); //Rooms are left automatically upon disconnection.
         });
       }
     }
@@ -200,20 +191,8 @@ module.exports = function(io) {
       socket.leave(payload.roomId);
       openedRandomRoomsBuffer.splice(randomRoomIndex, 1);
     }
-    //TODO: дублируется
-    function handleDeleteOwnRoom(payload) {
-      console.log('rooms', ownRooms);
-      const roomIndex = ownRooms.findIndex(
-        room => room.roomId === payload.roomId
-      );
-      if (roomIndex >= 0) {
-        ownRooms.splice(roomIndex, 1);
-      }
-    }
-    //TODO: userType
-    //TODO: выбрать тип геймер можно и после начала игры
+
     function handleCloseOwnGame(payload) {
-      console.log('rooms', ownRooms);
       const roomIndex = ownRooms.findIndex(
         room => room.roomId === payload.roomId
       );
@@ -225,29 +204,26 @@ module.exports = function(io) {
         return false;
       }
       const clients = io.sockets.adapter.rooms[payload.roomId];
-      const gamerIndex = ownRooms[roomIndex].players.findIndex(
+      const currentRoom = ownRooms[roomIndex];
+      const gamerIndex = currentRoom[payload.userType].findIndex(
         gamerId => gamerId === socket.id
       );
-      console.log('----');
-      console.log(clients);
-      if (clients.length < 2) {
-        console.log('works');
+      if (!clients || clients.length < 2) {
         ownRooms.splice(roomIndex, 1);
-      } else {
-        ownRooms[roomIndex].players.splice(gamerIndex, 1);
+      } else if (gamerIndex > -1) {
+        currentRoom[payload.userType].splice(gamerIndex, 1);
+        io.in(payload.roomId).emit(RECEIVE_USERS_COUNT, {
+          playersCount: currentRoom.players.length,
+          spectatorsCount: currentRoom.spectators.length,
+        });
       }
       socket.leave(payload.roomId);
     }
 
     function handleRequestCheckRoom(payload) {
-      console.log('rooms2', ownRooms);
-      console.log('socket   ', socket.id);
-      /*есть какой-то баг, когда у нас комнаты в списке нет*/
       const roomIndex = ownRooms.findIndex(
         room => room.roomId === payload.roomId
       );
-      console.log(payload);
-      console.log(roomIndex);
       if (roomIndex < 0) {
         socket.emit(RECEIVE_CHECK_ROOM, {
           roomId: payload.roomId,
@@ -259,6 +235,7 @@ module.exports = function(io) {
           roomId: payload.roomId,
           checked: true,
         });
+        //TODO: разве это надо
         socket.emit(RECEIVE_USERS_COUNT, {
           playersCount: currentRoom.players.length,
           spectatorsCount: currentRoom.spectators.length,
@@ -266,39 +243,37 @@ module.exports = function(io) {
       }
     }
 
-    function handleRequestGameData(roomId) {
-      if (randomRooms.findIndex(room => room.roomId === roomId) < 0) {
-        return false;
-      }
-      socket.join(roomId);
-      //const clients = io.sockets.adapter.rooms[roomId];
-      io.in(roomId).emit(GET_GAME_DATA, socket.id); // получившие эту запись являются игроками
+    /*-----------------------------------------------*/
+
+    function handleGreetingToAll(payload) {
+      socket
+        .to(payload.roomId)
+        .emit(RECEIVE_GREETING, { playersId: socket.id });
     }
-    function handlePostGameData(data) {
-      io.to(`${data.socketId}`).emit(RECEIVE_GAME_DATA, {
-        busyCellsMatrix: data.busyCellsMatrix,
-        ships: data.ships,
+    function handleRequestGameData(payload) {
+      io.to(payload.roomId).emit(GET_GAME_DATA, socket.id);
+    }
+
+    function handlePostGameData(payload) {
+      io.to(`${payload.socketId}`).emit(RECEIVE_GAME_DATA, {
+        busyCellsMatrix: payload.busyCellsMatrix,
+        ships: payload.ships,
         socketId: socket.id,
       });
     }
 
-    /*-----------------------------------------------*/
-
     function handleLeaveRoom(payload) {
-      const clients = io.sockets.adapter.rooms[payload.roomID];
-      socket.leave(payload.roomId);
-      if (clients.length < 2) {
-        const roomIndex = randomRooms.findIndex(
-          room => room.roomId === payload.roomId
+      const { roomId, userType } = payload;
+      const roomIndex = ownRooms.findIndex(room => room.roomId === roomId);
+      const currentRoom = ownRooms[roomIndex];
+      if (roomIndex > -1) {
+        const gamerIndex = currentRoom[userType].findIndex(
+          gamerId => gamerId === socket.id
         );
-        const randomRoomIndex = openedRandomRoomsBuffer.indexOf(payload.roomId);
-        if (roomIndex >= 0) {
-          randomRooms.splice(roomIndex, 1);
-        }
-        if (randomRoomIndex >= 0) {
-          openedRandomRoomsBuffer.splice(randomRoomIndex, 1);
-        }
+        currentRoom[userType].splice(gamerIndex, 1);
       }
+
+      socket.leave(roomId);
     }
 
     function handleOpponentWinning(payload) {
@@ -316,7 +291,7 @@ module.exports = function(io) {
       const roomIndex = randomRooms.findIndex(
         room => room.roomId === payload.roomId
       );
-      if (roomIndex >= 0) {
+      if (roomIndex > -1) {
         randomRooms.splice(roomIndex, 1);
       }
     }

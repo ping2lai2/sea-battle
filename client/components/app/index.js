@@ -3,10 +3,8 @@ import { Route, Switch } from 'react-router';
 
 import io from 'socket.io-client';
 
-import Lobby from '../../containers/lobby';
-import GameRoute from '../../containers/game-route';
 import GameInfo from '../../containers/game-info';
-import MainRoute from '../../components/main-route';
+import MainRoute from '../../containers/main-route';
 import OwnRoute from '../../containers/own-route';
 
 import './style.css';
@@ -28,8 +26,8 @@ class App extends React.Component {
           />
           <Route
             path="/:roomId"
-            render={(props, match) => (
-              <OwnRoute socket={socket} {...match} {...props} />
+            render={(props) => (
+              <OwnRoute socket={socket} {...props} />
             )}
           />
         </Switch>

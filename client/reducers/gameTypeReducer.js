@@ -1,4 +1,4 @@
-import { SET_GAME_TYPE } from '../actions/gameType';
+import { SET_GAME_TYPE } from '../actions';
 
 
 export const gameTypeReducer = (state = null, action) => {

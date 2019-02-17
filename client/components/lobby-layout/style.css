@@ -1,0 +1,15 @@
+.lobby {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  box-sizing: border-box;
+  flex: 1 0;
+  flex-direction: column;
+}
+.lobby__inner {
+ display: flex;
+ justify-content: center;
+ width: 100%;
+  
+}

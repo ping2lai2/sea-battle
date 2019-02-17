@@ -1,31 +1,29 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import MainRoute from '../../components/main-route';
+import MainRoute from '../../containers/main-route';
 import PropTypes from 'prop-types';
 
 import {
   RECEIVE_CHECK_ROOM,
   REQUEST_CHECK_ROOM,
+  CLOSE_OWN_GAME,
 } from '../../../common/socketEvents';
 
-import { setRoomId } from '../../actions/userData';
+import { setRoomId } from '../../actions';
 
 class OwnRoute extends React.Component {
   componentDidMount() {
     const { socket, match } = this.props;
-    /* нужно проверить есть ли комната, если есть, то закинуть в 
-    стейт румайди, проверку наличия кораблей нужно перенести чуть дальше,
-    либо распараллелить, кроме этого, мне нужно как-то прокинуть состояние
-    для гейм-креатора, можно в нем проверку какую сделать, мол
-    если хистори и пропса стора совпадают, то показывать кнопки выбора типа игрока
-     */
+
     socket.on(RECEIVE_CHECK_ROOM, this.handleReceiveCheckRoom);
-console.log(match.params.roomId);
     socket.emit(REQUEST_CHECK_ROOM, { roomId: match.params.roomId });
   }
   componentWillUnmount() {
-    const { socket } = this.props;
+    const { socket, userData } = this.props;
+    if (userData.roomId) {
+      socket.emit(CLOSE_OWN_GAME, userData);
+    }
     socket.removeEventListener(RECEIVE_CHECK_ROOM, this.handleReceiveCheckRoom);
   }
   handleReceiveCheckRoom = data => {
@@ -40,8 +38,9 @@ console.log(match.params.roomId);
   }
 }
 
-const mapStateToProps = ({ shipsPlacement }) => ({
+const mapStateToProps = ({ shipsPlacement, userData }) => ({
   shipsPlacement,
+  userData
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -51,7 +50,6 @@ const mapDispatchToProps = dispatch => ({
 OwnRoute.propTypes = {
   socket: PropTypes.object.isRequired,
   match: PropTypes.object.isRequired,
-  createGameData: PropTypes.func.isRequired,
 };
 
 export default connect(

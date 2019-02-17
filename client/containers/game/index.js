@@ -11,11 +11,9 @@ import {
   putShipsCellToGamerData,
   putCellToOpponentData,
   putShipToOpponentData,
-  restoreInitialTimer,
+  resetTimer,
   setInfo,
   determineWinner,
-  runGame,
-  disableGame,
   createGameData,
 } from '../../actions';
 
@@ -23,15 +21,15 @@ import Chat from '../chat';
 import Timer from '../../containers/timer';
 import GamerGrid from '../../components/gamer-grid';
 import OpponentGrid from '../../components/opponent-grid';
+import GameHead from '../../components/game-head';
+import Grids from '../../components/grids';
+import ReturnButton from '../../components/return-button';
 
 import phrases from '../../api/phrases';
-
-import './style.css';
 
 import {
   OPPONENT_LEFT,
   ALL_PLAYERS_CONNECTED,
-  //JOIN_RANDOM_GAME,
   USERS_TURN,
   SEND_SHOOT,
   SEND_DESTROYED_SHIP,
@@ -43,7 +41,9 @@ import {
   OPPONENT_HAS_WON,
   GET_GAME_DATA,
   POST_GAME_DATA,
+  GREETINGS_TO_ALL,
 } from '../../../common/socketEvents';
+
 
 class Game extends React.Component {
   constructor(props) {
@@ -55,13 +55,13 @@ class Game extends React.Component {
       createGameData,
       shipsPlacement,
       runGame,
+      userData,
       setInfo,
     } = this.props;
     createGameData(shipsPlacement.ships, shipsPlacement.busyCellsMatrix);
     setInfo(phrases.opponent);
     runGame();
 
-    // socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
     socket.on(OPPONENT_LEFT, this.handleOpponentLeft);
     socket.on(USERS_TURN, this.handleGamersTurn);
     socket.on(RECEIVE_SHOOT, this.handleReceiveShoot);
@@ -69,6 +69,8 @@ class Game extends React.Component {
     socket.on(GAMER_HAS_WON, this.handleGamerHasWon);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
     socket.on(GET_GAME_DATA, this.handleGetGameData);
+
+    socket.emit(GREETINGS_TO_ALL, { roomId: userData.roomId });
   }
   componentWillUnmount() {
     const { socket } = this.props;
@@ -103,14 +105,14 @@ class Game extends React.Component {
     const {
       canShoot,
       canGamerShoot,
-      restoreInitialTimer,
+      resetTimer,
       socket,
       userData,
     } = this.props;
     if (canShoot) {
       socket.emit(SEND_SHOOT, { roomId: userData.roomId, cell });
       canGamerShoot(false);
-      restoreInitialTimer();
+      resetTimer();
     }
   };
 
@@ -122,7 +124,7 @@ class Game extends React.Component {
       putShipsCellToGamerData,
       putCellToGamerData,
       determineWinner,
-      restoreInitialTimer,
+      resetTimer,
       canGamerShoot,
       setInfo,
     } = this.props;
@@ -163,9 +165,9 @@ class Game extends React.Component {
       });
       canGamerShoot(true);
       setInfo(phrases.gamer);
+      putCellToGamerData(cell);
     }
-    putCellToGamerData(cell); //TODO: выше
-    restoreInitialTimer();
+    resetTimer();
   };
 
   // получили результат выстрела
@@ -206,7 +208,7 @@ class Game extends React.Component {
 
   handleOpponentLeft = () => {
     const { setInfo, determineWinner, winnerStatus } = this.props;
-    if (winnerStatus===null) {
+    if (winnerStatus === null) {
       setInfo(phrases.disconnect);
       determineWinner(true);
     }
@@ -222,12 +224,12 @@ class Game extends React.Component {
       winnerStatus,
       determineWinner,
       disableGame,
-      canShoot
+      canShoot,
     } = this.props;
     return (
-      <div className="game">
-        <div className="game-head">
-          {winnerStatus===null ? (
+      <>
+        <GameHead>
+          {winnerStatus === null ? (
             <Timer
               socket={socket}
               roomId={userData.roomId}
@@ -235,20 +237,22 @@ class Game extends React.Component {
               setInfo={setInfo}
               canShoot={canShoot}
               determineWinner={determineWinner}
-              restoreInitialTimer={restoreInitialTimer}
+              resetTimer={resetTimer}
             />
           ) : (
-            <Link className="return-button" to="/" onClick={disableGame}>
-              назад
-            </Link>
+            <ReturnButton>
+              <Link to="/" onClick={disableGame}>
+                назад
+              </Link>
+            </ReturnButton>
           )}
-        </div>
-        <div className="field">
+        </GameHead>
+        <Grids>
           <GamerGrid {...gamerData} />
           <OpponentGrid {...opponentData} sendShoot={this.handleSendShoot} />
-        </div>
+        </Grids>
         <Chat />
-      </div>
+      </>
     );
   }
 }
@@ -257,25 +261,19 @@ const mapStateToProps = ({
   gamerData,
   opponentDataA,
   canShoot,
-  gameStatus,
   winnerStatus,
   shipsPlacement,
-  userData,
 }) => ({
   gamerData,
   opponentData: opponentDataA,
   canShoot,
-  gameStatus,
   winnerStatus,
   shipsPlacement,
-  userData,
 });
 
 const mapDispatchToProps = dispatch => ({
   canGamerShoot: bool => dispatch(canGamerShoot(bool)),
-
-  restoreInitialTimer: () => dispatch(restoreInitialTimer()),
-
+  resetTimer: () => dispatch(resetTimer()),
   putCellToGamerData: cell => dispatch(putCellToGamerData(cell)),
   putShipsCellToGamerData: (shipIndex, cell) =>
     dispatch(putShipsCellToGamerData(shipIndex, cell)), //меняем флаг isDestroyed у одной ячейки корабля и у всего корабля
@@ -284,16 +282,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(putCellToOpponentData(cell, hit)),
   putShipToOpponentData: (index, ship) =>
     dispatch(putShipToOpponentData(index, ship)),
-
   createGameData: (ships, busyCellsMatrix) =>
     dispatch(createGameData(ships, busyCellsMatrix)),
-
   setInfo: phrase => dispatch(setInfo(phrase)),
-
   determineWinner: bool => dispatch(determineWinner(bool)),
-
-  runGame: () => dispatch(runGame()),
-  disableGame: () => dispatch(disableGame()),
 });
 
 Game.propTypes = {

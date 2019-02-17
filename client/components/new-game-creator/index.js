@@ -5,71 +5,29 @@ import PropTypes from 'prop-types';
 import './style.css';
 
 class NewGameCreator extends React.Component {
-  state = {
-    ownGameClicked: false,
-    randomGameClicked: false,
-  };
-  closeRandomGame = () => {
-    //сбросить овердохрена всяких фитч, ливнуть из комнаты
-    this.props.closeRandomGame();
-    this.setState({
-      randomGameClicked: false,
-    });
-  };
-  closeOwnGame = () => {
-    //сбросить овердохрена всяких фитч, ливнуть из комнаты
-    this.props.closeOwnGame();
-    this.setState({
-      ownGameClicked: false,
-    });
-  };
-  runRandomGame = () => {
-    this.props.requestRandomRoom();
-    this.setState({
-      randomGameClicked: true,
-    });
-  };
-  runOwnGame = () => {
-    this.props.requestOwnRoom();
-  };
-  joinOwnGame = () => {
-    this.setState({
-      ownGameClicked: true,
-    });
-    this.props.joinOwnGame();
-  };
-  handleFocus = (e) => e.target.select();
+  handleFocus = e => e.target.select();
   showOwnGameForm = () => {
     const {
       ownGame,
       userData,
       setPlayerType,
       setSpectatorType,
-      deleteOwnRoom,
+      playersCount,
+      spectatorsCount,
+      closeOwnGame,
+      closeRandomGame,
+      requestOwnRoom,
+      joinOwnGame,
+      requestRandomRoom,
+      ownGameSelected,
+      randomGameSelected,
     } = this.props;
-    const { ownGameClicked, randomGameClicked } = this.state;
     if (ownGame) {
-      if (ownGameClicked) {
+      if (ownGameSelected) {
         return (
           <>
+            <span className="game-title">выбрана игра с друзьями</span>
             <span className="game-description">отправьте url друзьям:</span>
-            <input
-              className="game-input"
-              type="text"
-              placeholder="комната..."
-              readOnly
-              value={window.location.href}
-              onFocus={this.handleFocus}
-            />
-            <div className="game-button" onClick={this.closeOwnGame}>
-              отмена
-            </div>
-          </>
-        );
-      } else {
-        return (
-          <>
-          <span className="game-description">отправьте url друзьям:</span>
             <input
               className="game-input"
               type="text"
@@ -85,6 +43,45 @@ class NewGameCreator extends React.Component {
                     ? ' game-types__element_choosed'
                     : ''
                 }`}
+              >
+                {`игроки: ${playersCount}`}
+              </div>
+              <div
+                className={`game-types__element${
+                  userData.userType === 'spectators'
+                    ? ' game-types__element_choosed'
+                    : ''
+                }`}
+              >
+                {`зрители: ${spectatorsCount}`}
+              </div>
+            </div>
+            <div className="game-button" onClick={closeOwnGame}>
+              отмена
+            </div>
+          </>
+        );
+      } else {
+        return (
+          <>
+            <span className="game-title">выбрана игра с друзьями</span>
+            <span className="game-description">отправьте url друзьям:</span>
+            <input
+              className="game-input"
+              type="text"
+              placeholder="комната..."
+              readOnly
+              value={window.location.href}
+              onFocus={this.handleFocus}
+            />
+            <div className="game-types">
+              <div
+                className={`game-types__element${
+                  userData.userType === 'players'
+                    ? ' game-types__element_choosed'
+                    : ''
+                }`}
+                disabled={playersCount >= 2}
                 onClick={setPlayerType}
               >
                 игрок
@@ -100,31 +97,34 @@ class NewGameCreator extends React.Component {
                 зритель
               </div>
             </div>
-            <div className="game-button" onClick={this.joinOwnGame}>
+            <div className="game-button" onClick={joinOwnGame}>
               вход
             </div>
-            <div className="game-button" onClick={deleteOwnRoom}>
+            <div className="game-button" onClick={closeOwnGame}>
               отмена
             </div>
           </>
         );
       }
-    } else if (randomGameClicked) {
+    } else if (randomGameSelected) {
       return (
-        <div className="game-button" onClick={this.closeRandomGame}>
-          отмена
-        </div>
+        <>
+          <span className="game-title">
+            выбрана игра со случайным противником
+          </span>
+          <div className="game-button" onClick={closeRandomGame}>
+            отмена
+          </div>
+        </>
       );
     } else {
       return (
         <>
-          <div className="game-button" onClick={this.runRandomGame}>
+          <span className="game-title">доступные режимы игры:</span>
+          <div className="game-button" onClick={requestRandomRoom}>
             случайная игра
           </div>
-          <div
-            className="game-button"
-            onClick={this.runOwnGame}
-          >
+          <div className="game-button" onClick={requestOwnRoom}>
             своя игра
           </div>
         </>
@@ -134,24 +134,27 @@ class NewGameCreator extends React.Component {
   render() {
     return (
       <div className="new-game-creator">
-        <input className="game-input" type="text" placeholder="твоё имя..." />
+        {/*<input className="game-input" type="text" placeholder="твоё имя..." />*/}
         {this.showOwnGameForm()}
       </div>
     );
   }
 }
-/*
-export const NewGameCreator = ({ runGame }) => (
-  <div className="new-game-creator">
-    <input className="gamer-name" type="text" placeholder="твоё имя..." />
-    <div className="game-button" onClick={()=>runGame(true)}>случайная игра</div>
-    <div className="game-button" onClick={()=>runGame(false)}>своя игра</div>
-  </div>
-);
-*/
 
 NewGameCreator.propTypes = {
-  runGame: PropTypes.func.isRequired,
+  ownGame: PropTypes.bool,
+  userData: PropTypes.object.isRequired,
+  setPlayerType: PropTypes.func.isRequired,
+  setSpectatorType: PropTypes.func.isRequired,
+  playersCount: PropTypes.number,
+  spectatorsCount: PropTypes.number,
+  closeOwnGame: PropTypes.func.isRequired,
+  closeRandomGame: PropTypes.func.isRequired,
+  requestOwnRoom: PropTypes.func.isRequired,
+  joinOwnGame: PropTypes.func.isRequired,
+  requestRandomRoom: PropTypes.func.isRequired,
+  ownGameSelected: PropTypes.bool.isRequired,
+  randomGameSelected: PropTypes.bool.isRequired,
 };
 
 export default NewGameCreator;

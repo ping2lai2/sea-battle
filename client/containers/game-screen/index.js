@@ -13,10 +13,12 @@ import {
 
 import Chat from '../chat';
 import GamerGrid from '../../components/gamer-grid';
+import GameHead from '../../components/game-head';
+import Grids from '../../components/grids';
+import ReturnButton from '../../components/return-button';
 
 import phrases from '../../api/phrases';
 
-import './style.css';
 
 import {
   ALL_PLAYERS_CONNECTED,
@@ -27,6 +29,7 @@ import {
   RECEIVE_SHOOT_FEEDBACK,
   GAMER_HAS_WON,
   LEAVE_ROOM,
+  RECEIVE_GREETING,
 } from '../../../common/socketEvents';
 
 class Game extends React.Component {
@@ -34,7 +37,7 @@ class Game extends React.Component {
     playersId: {},
   };
   componentDidMount() {
-    const { socket, match, setInfo } = this.props;
+    const { socket, userData, setInfo } = this.props;
 
     setInfo(phrases.screen);
 
@@ -42,21 +45,21 @@ class Game extends React.Component {
     socket.on(GAMER_HAS_WON, this.handleGamerHasWon);
     socket.on(ALL_PLAYERS_CONNECTED, this.handleAllPlayersConnected);
 
-    socket.on(RECEIVE_GAME_DATA, this.handleReceiveGameData);
+    socket.on(RECEIVE_GAME_DATA, this.handleReceiveData);
     socket.on(RECEIVE_SHOOT_FEEDBACK, this.handleReceiveShootFeedback);
     socket.on(RECEIVE_DESTROYED_SHIP, this.handleReceiveDestroyedShip);
+    socket.on(RECEIVE_GREETING, this.handleReceiveInitialData);
 
-
-    socket.emit(REQUEST_GAME_DATA, match.params.roomID);
+    socket.emit(REQUEST_GAME_DATA, { roomId: userData.roomId });
   }
   componentWillUnmount() {
-    const { socket, match } = this.props;
+    const { socket, userData } = this.props;
     socket.removeEventListener(OPPONENT_LEFT, this.handleOpponentLeft);
     socket.removeEventListener(
       ALL_PLAYERS_CONNECTED,
       this.handleAllPlayersConnected
     );
-    socket.removeEventListener(RECEIVE_GAME_DATA, this.handleReceiveGameData);
+    socket.removeEventListener(RECEIVE_GAME_DATA, this.handleReceiveData);
     socket.removeEventListener(
       RECEIVE_SHOOT_FEEDBACK,
       this.handleReceiveShootFeedback
@@ -67,38 +70,48 @@ class Game extends React.Component {
       this.handleReceiveDestroyedShip
     );
 
-
-    socket.emit(LEAVE_ROOM, { roomID: match.params.roomID }); //need to test
+    socket.emit(LEAVE_ROOM, { userData }); //need to test
   }
-  handleReceiveGameData = data => {
-    if (Object.entries(this.state.playersId).length === 0) {
+  handleReceiveInitialData = data => isReq => {
+    //the number of user IDs.
+    switch (Object.entries(this.state.playersId).length) {
+    case 0: {
       this.setState({
         playersId: {
-          [data.socketId]: 'B',
-        },
-      });
-      this.props.createReceivedOpponentData(
-        data.ships,
-        data.busyCellsMatrix,
-        'A'
-      );
-    } else {
-      this.setState({
-        playersId: {
-          ...this.state.playersId,
           [data.socketId]: 'A',
         },
       });
-      this.props.createReceivedOpponentData(
-        data.ships,
-        data.busyCellsMatrix,
-        'B'
-      );
+      isReq &&
+          this.props.createReceivedOpponentData(
+            data.ships,
+            data.busyCellsMatrix,
+            'B'
+          );
+      break;
+    }
+    case 1: {
+      if (!Object.keys(this.state.playersId).includes(data.socketId)) {
+        this.setState({
+          playersId: {
+            ...this.state.playersId,
+            [data.socketId]: 'B',
+          },
+        });
+        isReq &&
+            this.props.createReceivedOpponentData(
+              data.ships,
+              data.busyCellsMatrix,
+              'A'
+            );
+      }
+      break;
+    }
     }
   };
+  handleReceiveData = data => {
+    this.handleReceiveInitialData(data)(true);
+  };
 
-
-  // получили результат выстрела
   handleReceiveShootFeedback = data => {
     const { putCellToOpponentData, setInfo } = this.props;
     if (!data.hit) {
@@ -125,8 +138,8 @@ class Game extends React.Component {
       this.setState({
         playersId: {},
       });
-      const { socket, match } = this.props;
-      socket.emit(REQUEST_GAME_DATA, match.params.roomID);
+      const { socket, userData } = this.props;
+      socket.emit(REQUEST_GAME_DATA, { roomId: userData.roomId });
     }
   };
 
@@ -141,15 +154,17 @@ class Game extends React.Component {
   };
 
   render() {
-    const { opponentDataA, opponentDataB } = this.props;
+    const { opponentDataA, opponentDataB, disableGame } = this.props;
     return (
-      <div className="game">
-        <div className="game-head">
-          <Link className="return-button" to="/">
-            назад
-          </Link>
-        </div>
-        <div className="field">
+      <>
+        <GameHead>
+          <ReturnButton>
+            <Link to="/" onClick={disableGame}>
+              назад
+            </Link>
+          </ReturnButton>
+        </GameHead>
+        <Grids>
           <div>
             <GamerGrid {...opponentDataA} />
             {'Игрок A'}
@@ -158,9 +173,9 @@ class Game extends React.Component {
             <GamerGrid {...opponentDataB} />
             {'Игрок B'}
           </div>
-        </div>
+        </Grids>
         <Chat />
-      </div>
+      </>
     );
   }
 }

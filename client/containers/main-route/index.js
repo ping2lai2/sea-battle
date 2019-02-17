@@ -7,38 +7,28 @@ import Lobby from '../../containers/lobby';
 
 import PropTypes from 'prop-types';
 
-import {
-  RECEIVE_OWN_ROOM,
-  RECEIVE_RANDOM_ROOM,
-  REQUEST_OWN_ROOM,
-  REQUEST_RANDOM_ROOM,
-  ALL_PLAYERS_CONNECTED,
-} from '../../../common/socketEvents';
+import { ALL_PLAYERS_CONNECTED } from '../../../common/socketEvents';
 
-import { setRoomId, resetRoomId } from '../../actions/userData';
-import { disableGame, runGame } from '../../actions';
+import { disableGame, runGame, setRoomId, resetRoomId } from '../../actions';
 
 class MainRoute extends React.Component {
   componentDidMount() {
-    const { socket, history, resetRoomId } = this.props;
-    socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
+    this.props.socket.on(ALL_PLAYERS_CONNECTED, this.handlePlayersConnected);
   }
   componentWillUnmount() {
-    const { socket, history } = this.props;
-    socket.removeEventListener(
+    this.props.socket.removeEventListener(
       ALL_PLAYERS_CONNECTED,
       this.handlePlayersConnected
     );
   }
   handlePlayersConnected = () => {
-    console.log('all connected');
     this.props.runGame();
   };
+
   handleReceiveOwnRoom = roomId => {
     const { history, setRoomId } = this.props;
-    //TODO: ОН ВЕДЬ НЕ СЕТИТ РУМАЙДИ, Я НЕ ПОДПИСАН ЧЕРЕЗ ДИСПАТЧ
     setRoomId(roomId);
-    history.push(`/${roomId}`);
+    history.replace(`/${roomId}`);
   };
 
   handleReceiveRandomRoom = roomId => {
@@ -79,8 +69,7 @@ const mapDispatchToProps = dispatch => ({
 });
 MainRoute.propTypes = {
   socket: PropTypes.object.isRequired,
-  match: PropTypes.object.isRequired,
-  createGameData: PropTypes.func.isRequired,
+  ownGame: PropTypes.bool,
 };
 
 export default connect(

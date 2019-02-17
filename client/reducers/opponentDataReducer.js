@@ -74,16 +74,18 @@ export const opponentDataReducer = (state = initialState, action) => {
               j >= busyY[0] &&
               j <= busyY[1]
           ) {
-            cell = cell === 0 ? 7 : cell;
+            if (
+              i >= coordsMin.x &&
+                i <= coordsMax.x &&
+                j >= coordsMin.y &&
+                j <= coordsMax.y
+            ) {
+              cell = 8;
+            } else {
+              cell = cell === 0 ? 7 : cell;
+            }
           }
-          if (
-            i >= coordsMin.x &&
-              i <= coordsMax.x &&
-              j >= coordsMin.y &&
-              j <= coordsMax.y
-          ) {
-            cell = 8;
-          }
+
           return cell;
         })
       ),

@@ -1,14 +1,14 @@
-import { DETERMINE_WINNER, RESTORE_INITIAL_WINNER } from '../actions';
+import { SET_WINNER, RESET_WINNER } from '../actions';
 
 const initialState = null;
 
 
 export const winnerStatusReducer = (state = initialState, action) => {
   switch (action.type) {
-  case DETERMINE_WINNER: {
+  case SET_WINNER: {
     return action.bool;
   }
-  case RESTORE_INITIAL_WINNER: {
+  case RESET_WINNER: {
     return initialState;
   }
   default: {
