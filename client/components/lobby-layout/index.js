@@ -10,7 +10,10 @@ const LobbyLayout = ({ children }) => (
 );
 
 LobbyLayout.propTypes = {
-  children: PropTypes.object.isRequired,
+  children: PropTypes.oneOfType([
+    PropTypes.array,
+    PropTypes.object
+  ]),
 };
 
 export default LobbyLayout;

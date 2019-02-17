@@ -6,7 +6,10 @@ import './style.css';
 const GameHead = ({ children }) => <div className="game-head">{children}</div>;
 
 GameHead.propTypes = {
-  children: PropTypes.object.isRequired,
+  children: PropTypes.oneOfType([
+    PropTypes.array,
+    PropTypes.object
+  ]),
 };
 
 export default GameHead;
