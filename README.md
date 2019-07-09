@@ -47,6 +47,6 @@ A player wins the game if he first sinks all opponent's ships or opponent runs o
  
  ![](screenshots/screencapture-localhost-3000-3.png)
  
- ![](screenshots/screencapture-localhost-3000-4.png)
- 
  ![](screenshots/screencapture-localhost-3000-5.png)
+ 
+ ![](screenshots/screencapture-localhost-3000-4.png)
