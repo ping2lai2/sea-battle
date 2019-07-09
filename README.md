@@ -41,3 +41,12 @@ A player wins the game if he first sinks all opponent's ships or opponent runs o
  room member can choose his type (player or spectator); 
  the game will start when the room will be two players
  
+ ![](screenshots/screencapture-localhost-3000-1.png)
+ 
+ ![](screenshots/screencapture-localhost-3000-2.png)
+ 
+ ![](screenshots/screencapture-localhost-3000-3.png)
+ 
+ ![](screenshots/screencapture-localhost-3000-4.png)
+ 
+ ![](screenshots/screencapture-localhost-3000-5.png)
