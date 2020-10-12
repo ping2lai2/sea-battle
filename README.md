@@ -4,7 +4,7 @@ Classic sea battle. Game are played with a time control. Each turn player has 30
 A player wins the game if he first sinks all opponent's ships or opponent runs out of time.
 
 ## Demo
-[Live DEMO](https://sea-bbattle.herokuapp.com/)
+[Live DEMO](http://sea-bbattle.herokuapp.com/)
 
 ## The project was build using the following technologies
 * React
